@@ -1,0 +1,36 @@
+name: 'cli:quotas:build'
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'cli/quotas/**'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: startsWith(github.event.head_commit.message, '🏁 Releasing version') != true && startsWith(github.event.head_commit.message, '⬆️  Next version') != true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Check out repository'
+        uses: actions/checkout@v2
+
+      - name: 'Set up Java'
+        uses: actions/setup-java@v2
+        with:
+          java-version: 17
+          distribution: 'zulu'
+
+      - name: 'Cache Maven packages'
+        uses: actions/cache@v2.1.7
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: 'Build'
+        working-directory: cli/quotas
+        run: ../mvnw -B --file pom.xml verify

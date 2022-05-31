@@ -1,0 +1,101 @@
+name: 'cli:quotas:ea'
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'cli/quotas/**'
+  workflow_dispatch:
+
+jobs:
+  # Build native executable per runner
+  build:
+    name: 'Build with Graal on ${{ matrix.os }}'
+    if: github.repository == 'jeqo/poc-apache-kafka' && startsWith(github.event.head_commit.message, '🏁 Releasing version') != true && startsWith(github.event.head_commit.message, '⬆️  Next version') != true
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: 'Check out repository'
+        uses: actions/checkout@v2
+
+      - name: 'Add Developer Command Prompt for Microsoft Visual C++ '
+        if: ${{ runner.os == 'Windows' }}
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.0.0.2'
+          java-version: '17'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Cache Maven packages'
+        uses: actions/cache@v2.1.7
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: 'Build Native Image'
+        working-directory: cli/quotas/
+        run: ../mvnw -B --file pom.xml -Pnative package
+
+      - name: 'Create distribution'
+        working-directory: cli/quotas/
+        run: ../mvnw -B --file pom.xml -Pdist package -DskipTests
+
+      - name: 'Upload build artifact'
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: |
+            cli/quotas/target/*.zip
+            cli/quotas/target/*.tar.gz
+
+  # Collect all executables and release
+  release:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Check out repository'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: 'Download all build artifacts'
+        uses: actions/download-artifact@v2
+        with:
+          path: cli/quotas
+
+      - name: 'Set up Java'
+        uses: actions/setup-java@v2
+        with:
+          java-version: 17
+          distribution: 'zulu'
+
+      - name: 'Cache Maven packages'
+        uses: actions/cache@v2.1.7
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: 'Release with JReleaser'
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: cli/quotas/
+        run: ../mvnw -B --file pom.xml -Prelease -DartifactsDir=artifacts jreleaser:full-release
+
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: jreleaser-logs
+          path: |
+            cli/quotas/target/jreleaser/trace.log
+            cli/quotas/target/jreleaser/output.properties
