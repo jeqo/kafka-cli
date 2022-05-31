@@ -1,0 +1,101 @@
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:revnumber: 
+:manmanual: Kfk-quotas Manual
+:mansource: 
+:man-linkstyle: pass:[blue R < >]
+= kfk-quotas-query(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+kfk-quotas-query - Search for existing quotas or quotas applying to a certain client application
+
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*kfk-quotas query* [*-o*] [*--all-clients*] [*--all-ips*] [*--all-users*]
+                 [*--client-default*] [*--ip-default*] [*--user-default*]
+                 [*--client*=_<clientIds>_]... [*--ip*=_<ips>_]... [*--user*=_<users>_]...
+                 [*--user-clients*=_<String=String>_]... (*-c*=_<configPath>_ |
+                 [*--kafka*=_<kafkaContextName>_])
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Search for existing quotas or quotas applying to a certain client application
+
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*--all-clients*::
+  Get all quotas related to clients
+
+*--all-ips*::
+  Get all quotas related to IPs
+
+*--all-users*::
+  Get all quotas related to users
+
+*-c*, *--config*=_<configPath>_::
+  Client configuration properties file.Must include connection to Kafka and Schema Registry
+
+*--client*=_<clientIds>_::
+  
+
+*--client-default*::
+  
+
+*--ip*=_<ips>_::
+  
+
+*--ip-default*::
+  
+
+*--kafka*=_<kafkaContextName>_::
+  Kafka context name
+
+*-o*, *--only*::
+  Look only for quotas matching User, Client IDs, or IPs.
++
+If set to false (default), returns quotas even if not explicitly matching filters, e.g. defaults.
++
+If set to true, will return only the quotas matching the filters.
++
+
+
+*--user*=_<users>_::
+  
+
+*--user-clients*=_<String=String>_::
+  
+
+*--user-default*::
+  
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]

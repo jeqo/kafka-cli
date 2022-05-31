@@ -1,0 +1,69 @@
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:revnumber: kafka-cli-quotas version 0.1.0
+:manmanual: Kfk-quotas Manual
+:mansource: kafka-cli-quotas version 0.1.0
+:man-linkstyle: pass:[blue R < >]
+= kfk-quotas(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+kfk-quotas - CLI to manage Manage Kafka Quotas
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*kfk-quotas* [*-hV*] [COMMAND]
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+CLI to manage Manage Kafka Quotas
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*-h*, *--help*::
+  Show this help message and exit.
+
+*-V*, *--version*::
+  Print version information and exit.
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+== Commands
+
+xref:kfk-quotas-query.adoc[*query*]::
+  Search for existing quotas or quotas applying to a certain client application
++
+
+
+xref:kfk-quotas-create.adoc[*create*]::
+  Register new Quotas
+
+xref:kfk-quotas-delete.adoc[*delete*]::
+  Remove an existing Quota
+
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]

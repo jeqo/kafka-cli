@@ -1,0 +1,93 @@
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:revnumber: 
+:manmanual: Kfk-quotas Manual
+:mansource: 
+:man-linkstyle: pass:[blue R < >]
+= kfk-quotas-delete(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+kfk-quotas-delete - Remove an existing Quota
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*kfk-quotas delete* [*--all*] [*--client-default*] [*--connection-rate*] [*--fetch-rate*]
+                  [*--ip-default*] [*--produce-rate*] [*--request-rate*]
+                  [*--user-default*] [*--client*=_<clientId>_] [*--ip*=_<ip>_]
+                  [*--user*=_<user>_] (*-c*=_<configPath>_ |
+                  [*--kafka*=_<kafkaContextName>_])
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Remove an existing Quota
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*--all*::
+  Use to remove all existing quotas for an application
+
+*-c*, *--config*=_<configPath>_::
+  Client configuration properties file.Must include connection to Kafka and Schema Registry
+
+*--client*=_<clientId>_::
+  Application's Client ID
+
+*--client-default*::
+  Default to all client IDs
+
+*--connection-rate*::
+  Connection creation rate
+
+*--fetch-rate*::
+  Read bandwidth
+
+*--ip*=_<ip>_::
+  Application's IP
+
+*--ip-default*::
+  Default to all IPs
+
+*--kafka*=_<kafkaContextName>_::
+  Kafka context name
+
+*--produce-rate*::
+  Write bandwidth
+
+*--request-rate*::
+  Request rate
+
+*--user*=_<user>_::
+  Application's User Principal
+
+*--user-default*::
+  Default to all users
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]
