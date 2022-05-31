@@ -1,0 +1,68 @@
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:revnumber: 
+:manmanual: Kfk-ctx Manual
+:mansource: 
+:man-linkstyle: pass:[blue R < >]
+= kfk-ctx-sr-create(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+kfk-ctx-sr-create - Register context. Destination: ~/.kafka/schema-registry.json
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*kfk-ctx sr create* [*--auth*=_<authType>_] [[*-u*=_<username>_] [*-p*[=_<password>_]]]
+                  _<name>_ _<urls>_
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Register context. Destination: ~/.kafka/schema-registry.json
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*--auth*=_<authType>_::
+  Authentication type (default: NO_AUTH). Valid values: NO_AUTH, BASIC_AUTH
+
+*-p*, *--password*[=_<password>_]::
+  Password authentication
+
+*-u*, *--username*=_<username>_::
+  Username authentication
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+== Arguments
+
+_<name>_::
+  Context name. e.g. `local`
+
+_<urls>_::
+  Schema Registry URLs. e.g. `http://localhost:8081`
+
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]

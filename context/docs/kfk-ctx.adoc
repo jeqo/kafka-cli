@@ -1,0 +1,82 @@
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:revnumber: kafka-cli-context version 0.2.10
+:manmanual: Kfk-ctx Manual
+:mansource: kafka-cli-context version 0.2.10
+:man-linkstyle: pass:[blue R < >]
+= kfk-ctx(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+kfk-ctx - Manage Kafka connection as contexts.
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*kfk-ctx* [*-hvV*] [COMMAND]
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Manage Kafka connection as contexts.
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*-h*, *--help*::
+  Show this help message and exit.
+
+*-v*, *--verbose*::
+  
+
+*-V*, *--version*::
+  Print version information and exit.
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+== Commands
+
+xref:kfk-ctx-create.adoc[*create*]::
+  Register a Kafka context. Destination: ~/.kafka/kafka.json
+
+xref:kfk-ctx-delete.adoc[*delete*]::
+  Removes context. Destination: ~/.kafka/kafka.json
+
+xref:kfk-ctx-test.adoc[*test*]::
+  Test cluster contexts
+
+xref:kfk-ctx-properties.adoc[*properties*]::
+  Get properties configurations for contexts
+
+xref:kfk-ctx-kcat.adoc[*kcat*]::
+  kcat command with properties from context
+
+xref:kfk-ctx-env.adoc[*env*]::
+  env command with properties from context
+
+xref:kfk-ctx-sr.adoc[*sr*]::
+  Manage Schema Registry connection properties as contexts.
+
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]

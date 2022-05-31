@@ -1,0 +1,61 @@
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:revnumber: 
+:manmanual: Kfk-ctx Manual
+:mansource: 
+:man-linkstyle: pass:[blue R < >]
+= kfk-ctx-sr(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+kfk-ctx-sr - Manage Schema Registry connection properties as contexts.
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*kfk-ctx sr* [*-v*] [COMMAND]
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Manage Schema Registry connection properties as contexts.
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*-v*, *--verbose*::
+  
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+== Commands
+
+xref:kfk-ctx-sr-create.adoc[*create*]::
+  Register context. Destination: ~/.kafka/schema-registry.json
+
+xref:kfk-ctx-sr-delete.adoc[*delete*]::
+  Removes context. Destination: ~/.kafka/schema-registry.json
+
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]
