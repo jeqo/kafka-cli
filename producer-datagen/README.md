@@ -1,6 +1,6 @@
 # `kfk-producer-datagen` - Kafka CLI Producer Datagen
 
-[![cli:producer-datagen:build](https://github.com/jeqo/poc-apache-kafka/actions/workflows/cli-producer-datagen-build.yml/badge.svg)](https://github.com/jeqo/poc-apache-kafka/actions/workflows/cli-producer-datagen-build.yml)
+[![cli:producer-datagen:build](https://github.com/jeqo/kafka-cli/actions/workflows/cli-producer-datagen-build.yml/badge.svg)](https://github.com/jeqo/kafka-cli/actions/workflows/cli-producer-datagen-build.yml)
 
 The `kafka-producer-datagen` extends the default `ProducerPerformance` by combining the data-generation with the library behind [Datagen Source Connector](https://github.com/confluentinc/kafka-connect-datagen).
 
@@ -24,11 +24,11 @@ brew install kfk-producer-datagen
 
 ### Manual
 
-Find the latest release at: <https://github.com/jeqo/poc-apache-kafka/releases>
+Find the latest release at: <https://github.com/jeqo/kafka-cli/releases>
 
 ```shell
 VERSION=0.2.2
-wget https://github.com/jeqo/poc-apache-kafka/releases/download/cli-producer-datagen-v$VERSION/kfk-producer-datagen-$VERSION-linux-x86_64.tar.gz
+wget https://github.com/jeqo/kafka-cli/releases/download/cli-producer-datagen-v$VERSION/kfk-producer-datagen-$VERSION-linux-x86_64.tar.gz
 tar xf kfk-producer-datagen-$VERSION-linux-x86_64.tar.gz
 mv kfk-producer-datagen-$VERSION-linux-x86_64/bin/kfk-producer-datagen /usr/local/bin/.
 ```

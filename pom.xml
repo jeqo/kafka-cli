@@ -22,7 +22,7 @@
     <licenses>
         <license>
             <name>Apache-2.0</name>
-            <url>https://github.com/jeqo/poc-apache-kafka/blob/main/cli/quotas/LICENSE</url>
+            <url>https://github.com/jeqo/kafka-cli/blob/main/cli/quotas/LICENSE</url>
             <distribution>repo</distribution>
         </license>
     </licenses>

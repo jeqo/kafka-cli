@@ -16,7 +16,7 @@
   <name>kafka-cli-cluster-state</name>
   <description>Kafka: CLI: Topic List: Expand Kafka topic listing with Offsets and more.</description>
   <inceptionYear>2022</inceptionYear>
-  <url>https://github.com/jeqo/poc-apache-kafka</url>
+  <url>https://github.com/jeqo/kafka-cli</url>
 
   <dependencies>
     <dependency>
@@ -272,7 +272,7 @@
                 <release>
                   <github>
                     <owner>jeqo</owner>
-                    <name>poc-apache-kafka</name>
+                    <name>kafka-cli</name>
                     <tagName>cli-cluster-state-v{{projectVersion}}</tagName>
                     <releaseName>cli:cluster-state v{{projectVersion}}</releaseName>
                     <overwrite>true</overwrite>

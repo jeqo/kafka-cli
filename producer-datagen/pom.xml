@@ -16,7 +16,7 @@
   <name>kafka-cli-producer-datagen</name>
   <description>Kafka CLI: Producer Datagen</description>
   <inceptionYear>2022</inceptionYear>
-  <url>https://github.com/jeqo/poc-apache-kafka</url>
+  <url>https://github.com/jeqo/kafka-cli</url>
 
   <properties>
     <confluent.version>7.0.1</confluent.version>
@@ -272,7 +272,7 @@
                 <release>
                   <github>
                     <owner>jeqo</owner>
-                    <name>poc-apache-kafka</name>
+                    <name>kafka-cli</name>
                     <tagName>cli-producer-datagen-v{{projectVersion}}</tagName>
                     <releaseName>cli:producer-datagen v{{projectVersion}}</releaseName>
                     <overwrite>true</overwrite>

@@ -1,6 +1,6 @@
 # `kfk-cluster-state` - Kafka CLI: cluster state
 
-[![cli:cluster-state:build](https://github.com/jeqo/poc-apache-kafka/actions/workflows/cli-cluster-state-build.yml/badge.svg)](https://github.com/jeqo/poc-apache-kafka/actions/workflows/cli-cluster-state-build.yml)
+[![cli:cluster-state:build](https://github.com/jeqo/kafka-cli/actions/workflows/cli-cluster-state-build.yml/badge.svg)](https://github.com/jeqo/kafka-cli/actions/workflows/cli-cluster-state-build.yml)
 
 Command-line tool to get a JSON representation of the topics included in a Kafka cluster.
 Includes topic metadata, configuration, partitions, replica placement, and offsets.
@@ -28,11 +28,11 @@ brew install kfk-cluster-state
 
 ### Manual
 
-Find the latest release at: <https://github.com/jeqo/poc-apache-kafka/releases>
+Find the latest release at: <https://github.com/jeqo/kafka-cli/releases>
 
 ```shell
 VERSION=0.2.1
-wget https://github.com/jeqo/poc-apache-kafka/releases/download/cli-cluster-state-v$VERSION/kfk-cluster-state-$VERSION-linux-x86_64.tar.gz
+wget https://github.com/jeqo/kafka-cli/releases/download/cli-cluster-state-v$VERSION/kfk-cluster-state-$VERSION-linux-x86_64.tar.gz
 tar xf kfk-cluster-state-$VERSION-linux-x86_64.tar.gz
 mv kfk-cluster-state-$VERSION-linux-x86_64/bin/kfk-cluster-state /usr/local/bin/.
 ```

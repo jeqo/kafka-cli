@@ -16,7 +16,7 @@
     <name>kafka-cli-context</name>
     <description>Kafka: CLI: Context: Manage Kafka cluster contexts.</description>
     <inceptionYear>2022</inceptionYear>
-    <url>https://github.com/jeqo/poc-apache-kafka</url>
+    <url>https://github.com/jeqo/kafka-cli</url>
 
     <dependencies>
         <dependency>
@@ -251,7 +251,7 @@
                                 <release>
                                     <github>
                                         <owner>jeqo</owner>
-                                        <name>poc-apache-kafka</name>
+                                        <name>kafka-cli</name>
                                         <tagName>cli-context-v{{projectVersion}}</tagName>
                                         <releaseName>cli:context v{{projectVersion}}</releaseName>
                                         <overwrite>true</overwrite>

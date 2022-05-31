@@ -1,6 +1,6 @@
 # `kfk-ctx` - Kafka CLI: context
 
-[![cli:context:build](https://github.com/jeqo/poc-apache-kafka/actions/workflows/cli-context-build.yml/badge.svg)](https://github.com/jeqo/poc-apache-kafka/actions/workflows/cli-context-build.yml)
+[![cli:context:build](https://github.com/jeqo/kafka-cli/actions/workflows/cli-context-build.yml/badge.svg)](https://github.com/jeqo/kafka-cli/actions/workflows/cli-context-build.yml)
 
 - [Documentation](./docs/kfk-ctx.adoc)
 
@@ -22,11 +22,11 @@ brew install kfk-ctx
 
 ### Manual
 
-Find the latest release at: <https://github.com/jeqo/poc-apache-kafka/releases>
+Find the latest release at: <https://github.com/jeqo/kafka-cli/releases>
 
 ```shell
 VERSION=0.2.10
-wget https://github.com/jeqo/poc-apache-kafka/releases/download/cli-context-v$VERSION/kfk-ctx-$VERSION-linux-x86_64.tar.gz
+wget https://github.com/jeqo/kafka-cli/releases/download/cli-context-v$VERSION/kfk-ctx-$VERSION-linux-x86_64.tar.gz
 tar xf kfk-ctx-$VERSION-linux-x86_64.tar.gz
 mv kfk-ctx-$VERSION-linux-x86_64/bin/kfk-ctx /usr/local/bin/.
 ```

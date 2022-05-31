@@ -256,7 +256,7 @@
                 <release>
                   <github>
                     <owner>jeqo</owner>
-                    <name>poc-apache-kafka</name>
+                    <name>kafka-cli</name>
                     <tagName>cli-quotas-v{{projectVersion}}</tagName>
                     <releaseName>cli:quotas v{{projectVersion}}</releaseName>
                     <overwrite>true</overwrite>
