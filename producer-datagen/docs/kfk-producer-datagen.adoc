@@ -1,0 +1,73 @@
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:revnumber: kafka-cli-producer-datagen version 0.2.2
+:manmanual: Kfk-producer-datagen Manual
+:mansource: kafka-cli-producer-datagen version 0.2.2
+:man-linkstyle: pass:[blue R < >]
+= kfk-producer-datagen(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+kfk-producer-datagen - Kafka Producer with Data generation
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*kfk-producer-datagen* [*-hV*] [COMMAND]
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Kafka Producer with Data generation
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*-h*, *--help*::
+  Show this help message and exit.
+
+*-V*, *--version*::
+  Print version information and exit.
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+== Commands
+
+xref:kfk-producer-datagen-perf.adoc[*perf*]::
+  run performance tests
+
+xref:kfk-producer-datagen-interval.adoc[*interval*]::
+  run producer with interval
+
+xref:kfk-producer-datagen-once.adoc[*once*]::
+  produce once
+
+xref:kfk-producer-datagen-sample.adoc[*sample*]::
+  Get a sample of the quickstart
+
+xref:kfk-producer-datagen-topics.adoc[*topics*]::
+  List topics and subjectSchemas available in a cluster
+
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]

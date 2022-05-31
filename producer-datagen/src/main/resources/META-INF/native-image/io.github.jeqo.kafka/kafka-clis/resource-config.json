@@ -1,0 +1,20 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "^.*\\.avro$"
+      },
+      {
+        "pattern": "cli.properties"
+      }
+    ]
+  },
+  "bundles": [
+    {
+      "name": "sun.security.util.AuthResources"
+    },
+    {
+      "name": "sun.security.util.Resources"
+    }
+  ]
+}
