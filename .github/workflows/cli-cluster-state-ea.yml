@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'cli/cluster-state/**'
+      - 'cluster-state/**'
   workflow_dispatch:
 
 jobs:
@@ -41,11 +41,11 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: 'Build Native Image'
-        working-directory: cli/cluster-state/
+        working-directory: cluster-state/
         run: ../mvnw -B --file pom.xml -Pnative package
 
       - name: 'Create distribution'
-        working-directory: cli/cluster-state/
+        working-directory: cluster-state/
         run: ../mvnw -B --file pom.xml -Pdist package -DskipTests
 
       - name: 'Upload build artifact'
@@ -53,8 +53,8 @@ jobs:
         with:
           name: artifacts
           path: |
-            cli/cluster-state/target/*.zip
-            cli/cluster-state/target/*.tar.gz
+            cluster-state/target/*.zip
+            cluster-state/target/*.tar.gz
 
   # Collect all executables and release
   release:
@@ -70,7 +70,7 @@ jobs:
       - name: 'Download all build artifacts'
         uses: actions/download-artifact@v2
         with:
-          path: cli/cluster-state
+          path: cluster-state
 
       - name: 'Set up Java'
         uses: actions/setup-java@v2
@@ -88,7 +88,7 @@ jobs:
       - name: 'Release with JReleaser'
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: cli/cluster-state/
+        working-directory: cluster-state/
         run: ../mvnw -B --file pom.xml -Prelease -DartifactsDir=artifacts jreleaser:full-release
 
       - name: JReleaser output
@@ -97,5 +97,5 @@ jobs:
         with:
           name: jreleaser-logs
           path: |
-            cli/cluster-state/target/jreleaser/trace.log
-            cli/cluster-state/target/jreleaser/output.properties
+            cluster-state/target/jreleaser/trace.log
+            cluster-state/target/jreleaser/output.properties

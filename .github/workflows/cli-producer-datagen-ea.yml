@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'cli/producer-datagen/**'
+      - 'producer-datagen/**'
   workflow_dispatch:
 
 jobs:
@@ -41,11 +41,11 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: 'Build Native Image'
-        working-directory: cli/producer-datagen/
+        working-directory: producer-datagen/
         run: ../mvnw -B --file pom.xml -Pnative package
 
       - name: 'Create distribution'
-        working-directory: cli/producer-datagen/
+        working-directory: producer-datagen/
         run: ../mvnw -B --file pom.xml -Pdist package -DskipTests
 
       - name: 'Upload build artifact'
@@ -53,8 +53,8 @@ jobs:
         with:
           name: artifacts
           path: |
-            cli/producer-datagen/target/*.zip
-            cli/producer-datagen/target/*.tar.gz
+            producer-datagen/target/*.zip
+            producer-datagen/target/*.tar.gz
 
   # Collect all executables and release
   release:
@@ -70,7 +70,7 @@ jobs:
       - name: 'Download all build artifacts'
         uses: actions/download-artifact@v2
         with:
-          path: cli/producer-datagen
+          path: producer-datagen
 
       - name: 'Set up Java'
         uses: actions/setup-java@v2
@@ -88,7 +88,7 @@ jobs:
       - name: 'Release with JReleaser'
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: cli/producer-datagen/
+        working-directory: producer-datagen/
         run: ../mvnw -B --file pom.xml -Prelease -DartifactsDir=artifacts jreleaser:full-release
 
       - name: JReleaser output
@@ -97,5 +97,5 @@ jobs:
         with:
           name: jreleaser-logs
           path: |
-            cli/producer-datagen/target/jreleaser/trace.log
-            cli/producer-datagen/target/jreleaser/output.properties
+            producer-datagen/target/jreleaser/trace.log
+            producer-datagen/target/jreleaser/output.properties

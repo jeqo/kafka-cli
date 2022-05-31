@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'cli/producer-datagen/**'
+      - 'producer-datagen/**'
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -32,5 +32,5 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: 'Build'
-        working-directory: cli/producer-datagen
+        working-directory: producer-datagen
         run: ../mvnw -B --file pom.xml verify

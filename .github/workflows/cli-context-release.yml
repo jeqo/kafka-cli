@@ -32,7 +32,7 @@ jobs:
 
       - name: 'Set release version'
         id: version
-        working-directory: cli/context
+        working-directory: context
         run: |
           RELEASE_VERSION=${{ github.event.inputs.version }}
           NEXT_VERSION=${{ github.event.inputs.next }}
@@ -60,8 +60,8 @@ jobs:
         with:
           name: artifacts
           path: |
-            cli/context/HEAD
-            cli/context/*_VERSION
+            context/HEAD
+            context/*_VERSION
 
   # Build native executable per runner
   build:
@@ -107,11 +107,11 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: 'Build Native Image'
-        working-directory: cli/context/
+        working-directory: context/
         run: ../mvnw -B --file pom.xml -Pnative package
 
       - name: 'Create distribution'
-        working-directory: cli/context/
+        working-directory: context/
         run: ../mvnw -B --file pom.xml -Pdist package -DskipTests
 
       - name: 'Upload build artifact'
@@ -119,8 +119,8 @@ jobs:
         with:
           name: artifacts
           path: |
-            cli/context/target/*.zip
-            cli/context/target/*.tar.gz
+            context/target/*.zip
+            context/target/*.tar.gz
 
   # Collect all executables and release
   release:
@@ -163,7 +163,7 @@ jobs:
       - name: 'Download all build artifacts'
         uses: actions/download-artifact@v2
         with:
-          path: cli/context
+          path: context
 
       - name: 'Set up Java'
         uses: actions/setup-java@v2
@@ -179,13 +179,13 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: 'Check artifacts'
-        run: ls cli/context/artifacts
+        run: ls context/artifacts
 
       - name: 'Release with JReleaser'
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JRELEASER_HOMEBREW_GITHUB_TOKEN: ${{ secrets.JRELEASER_HOMEBREW_GITHUB_TOKEN }}
-        working-directory: cli/context
+        working-directory: context
         run: ../mvnw -B --file pom.xml -Prelease -DartifactsDir=artifacts jreleaser:full-release
 
       - name: JReleaser output
@@ -194,13 +194,13 @@ jobs:
         with:
           name: jreleaser-logs
           path: |
-            cli/context/target/jreleaser/trace.log
-            cli/context/target/jreleaser/output.properties
+            context/target/jreleaser/trace.log
+            context/target/jreleaser/output.properties
 
       - name: 'Set next version'
         env:
           NEXT_VERSION: ${{ steps.version.outputs.NEXT_VERSION }}
-        working-directory: cli/context
+        working-directory: context
         run: |
           ../mvnw -B --file pom.xml versions:set versions:commit -DnewVersion=$NEXT_VERSION
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
