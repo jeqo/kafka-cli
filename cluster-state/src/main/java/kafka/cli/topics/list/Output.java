@@ -20,7 +20,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.config.ConfigResource;
 
-public record Output(Cluster cluster, Map<String, Topic> topics) {
+public record Output(KafkaCluster kafkaCluster, Map<String, Topic> topics) {
 
   static ObjectMapper json =
       new ObjectMapper().registerModule(new Jdk8Module()).registerModule(new JavaTimeModule());
@@ -35,7 +35,7 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
     var topicsNode = json.createObjectNode();
     topics.forEach((s, topic) -> topicsNode.set(s, topic.jsonNode()));
 
-    node.set("cluster", cluster.jsonNode());
+    node.set("cluster", kafkaCluster.jsonNode());
     node.set("topics", topicsNode);
 
     if (pretty) return json.writerWithDefaultPrettyPrinter().writeValueAsString(node);
@@ -90,7 +90,7 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
                 config);
         topics.put(name, topic);
       }
-      return new Output(new Cluster(clusterId, brokers.stream().map(Node::from).toList()), topics);
+      return new Output(new KafkaCluster(clusterId, brokers.stream().map(Node::from).toList()), topics);
     }
 
     public Builder withClusterId(String id) {
@@ -129,7 +129,7 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
     }
   }
 
-  public record Cluster(String id, List<Node> nodes) {
+  public record KafkaCluster(String id, List<Node> nodes) {
 
     public JsonNode jsonNode() {
       final var node = json.createObjectNode();
