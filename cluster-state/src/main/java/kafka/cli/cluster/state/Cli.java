@@ -3,6 +3,7 @@ package kafka.cli.cluster.state;
 import static java.lang.System.err;
 import static java.lang.System.out;
 
+import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 import kafka.cli.cluster.state.Cli.VersionProviderWithConfigProvider;
 import kafka.context.KafkaContexts;
 import kafka.context.SchemaRegistryContexts;
@@ -25,9 +27,9 @@ import picocli.CommandLine.Option;
   name = "kfk-cluster-state",
   descriptionHeading = "Kafka CLI - Topic list",
   description = """
-                        List Kafka topics with metadata, partitions, replica placement, configuration,
-                         and offsets at once.
-                        """,
+                List Kafka topics with metadata, partitions, replica placement, configuration,
+                 and offsets at once.
+                """,
   versionProvider = VersionProviderWithConfigProvider.class,
   mixinStandardHelpOptions = true
 )
@@ -59,19 +61,34 @@ public class Cli implements Callable<Integer> {
 
   @Override
   public Integer call() throws Exception {
-    final var opts = new Opts(topics, prefix);
-
     final var clientConfig = propertiesOption.load();
+    boolean sr = clientConfig.containsKey("schema.registry.url");
+
+    final var opts = new Opts(topics, prefix, sr);
 
     try (var adminClient = AdminClient.create(clientConfig)) {
-      final var helper = new Helper(adminClient);
-      final var output = helper.run(opts);
-      out.println(output.toJson(pretty));
+      if (sr) {
+        var srClient = new CachedSchemaRegistryClient(
+          clientConfig.getProperty("schema.registry.url"),
+          10_000,
+          clientConfig
+            .keySet()
+            .stream()
+            .collect(Collectors.toMap(Object::toString, clientConfig::get))
+        );
+        final var helper = new Helper(adminClient, srClient);
+        final var output = helper.run(opts);
+        out.println(output.toJson(pretty));
+      } else {
+        final var helper = new Helper(adminClient);
+        final var output = helper.run(opts);
+        out.println(output.toJson(pretty));
+      }
     }
     return 0;
   }
 
-  record Opts(List<String> topics, Optional<String> prefix) {
+  record Opts(List<String> topics, Optional<String> prefix, boolean sr) {
     public boolean match(String name) {
       return topics.contains(name) || prefix.map(name::startsWith).orElse(true);
     }
