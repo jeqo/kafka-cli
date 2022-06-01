@@ -31,6 +31,6 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: 'Build'
-        working-directory: cluster-state
-        run: ../mvnw -B --file pom.xml verify
+      - name: 'Build Native Image'
+        working-directory: cluster-state/
+        run: ../mvnw -B --file pom.xml -Pnative package

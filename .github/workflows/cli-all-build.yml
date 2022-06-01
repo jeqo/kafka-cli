@@ -1,17 +1,14 @@
-name: 'cli:producer-datagen:build'
+name: 'cli:all:build'
 
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'producer-datagen/**'
   pull_request:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
-    if: startsWith(github.event.head_commit.message, '🏁 Releasing version') != true && startsWith(github.event.head_commit.message, '⬆️  Next version') != true
     runs-on: ubuntu-latest
 
     steps:
@@ -31,6 +28,5 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: 'Build Native Image'
-        working-directory: producer-datagen
-        run: ../mvnw -B --file pom.xml -Pnative package
+      - name: 'Build'
+        run: ./mvnw -B --file pom.xml verify
