@@ -1,10 +1,11 @@
-package kafka.cli.topics.list;
+package kafka.cli.cluster.state;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,8 +21,8 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.config.ConfigResource;
 
-public record Output(Cluster cluster, Map<String, Topic> topics) {
-
+public record Output(
+    KafkaCluster kafkaCluster, Map<String, Topic> topics, SchemaRegistry schemaRegistry) {
   static ObjectMapper json =
       new ObjectMapper().registerModule(new Jdk8Module()).registerModule(new JavaTimeModule());
 
@@ -35,11 +36,18 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
     var topicsNode = json.createObjectNode();
     topics.forEach((s, topic) -> topicsNode.set(s, topic.jsonNode()));
 
-    node.set("cluster", cluster.jsonNode());
+    node.set("cluster", kafkaCluster.jsonNode());
     node.set("topics", topicsNode);
 
-    if (pretty) return json.writerWithDefaultPrettyPrinter().writeValueAsString(node);
-    else return json.writeValueAsString(node);
+    if (schemaRegistry != null) {
+      node.set("schemaRegistry", schemaRegistry.jsonNode());
+    }
+
+    if (pretty) {
+      return json.writerWithDefaultPrettyPrinter().writeValueAsString(node);
+    } else {
+      return json.writeValueAsString(node);
+    }
   }
 
   static class Builder {
@@ -53,6 +61,8 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
     Map<String, Config> topicConfigs;
     Map<TopicPartition, ListOffsetsResultInfo> startOffsets;
     Map<TopicPartition, ListOffsetsResultInfo> endOffsets;
+
+    Map<String, Subject> srSubjects;
 
     Builder(List<String> names) {
       this.names = names;
@@ -90,7 +100,10 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
                 config);
         topics.put(name, topic);
       }
-      return new Output(new Cluster(clusterId, brokers.stream().map(Node::from).toList()), topics);
+      return new Output(
+          new KafkaCluster(clusterId, brokers.stream().map(Node::from).toList()),
+          topics,
+          srSubjects == null ? null : new SchemaRegistry(srSubjects));
     }
 
     public Builder withClusterId(String id) {
@@ -127,15 +140,48 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
       this.descriptions = descriptions;
       return this;
     }
+
+    public Builder withSchemaRegistrySubjects(Map<String, SchemaMetadata> srm) {
+      this.srSubjects = new HashMap<>(srm.size());
+      srm.forEach(
+          (subject, schemaMetadata) -> {
+            Subject s =
+                new Subject(
+                    schemaMetadata.getId(),
+                    schemaMetadata.getSchemaType(),
+                    schemaMetadata.getVersion());
+            srSubjects.put(subject, s);
+          });
+      return this;
+    }
   }
 
-  public record Cluster(String id, List<Node> nodes) {
-
+  public record KafkaCluster(String id, List<Node> nodes) {
     public JsonNode jsonNode() {
       final var node = json.createObjectNode();
       node.put("id", id);
       final var brokers = node.putArray("brokers");
       nodes.forEach(node1 -> brokers.add(node1.jsonNode()));
+      return node;
+    }
+  }
+
+  public record SchemaRegistry(Map<String, Subject> subjects) {
+    public JsonNode jsonNode() {
+      var jsonNode = json.createObjectNode();
+
+      var subjectsNode = json.createObjectNode();
+      subjects.forEach((s, subject) -> subjectsNode.set(s, subject.jsonNode()));
+
+      jsonNode.set("subjects", subjectsNode);
+      return jsonNode;
+    }
+  }
+
+  public record Subject(int id, String type, int currentVersion) {
+    public JsonNode jsonNode() {
+      var node = json.createObjectNode();
+      node.put("id", id).put("schemaType", type).put("currentVersion", currentVersion);
       return node;
     }
   }
@@ -148,14 +194,13 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
       boolean isInternal,
       List<Partition> partitions,
       Config config) {
-
     public JsonNode jsonNode() {
       var node = json.createObjectNode();
       node.put("name", name)
           .put("id", id)
           .put("isInternal", isInternal)
           .put("partitionCount", partitionCount)
-          .put("replication-factor", replicationFactor);
+          .put("replicationFactor", replicationFactor);
       var ps = node.putArray("partitions");
       partitions.forEach(p -> ps.add(p.jsonNode()));
       node.set("config", config.jsonNode());
@@ -170,7 +215,6 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
       List<Integer> isr,
       Offset startOffset,
       Offset endOffset) {
-
     public static Partition from(
         TopicPartitionInfo topicPartitionInfo,
         ListOffsetsResultInfo startOffset,
@@ -198,7 +242,6 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
     }
 
     public record Offset(long offset, long timestamp, Optional<Integer> leaderEpoch) {
-
       static Offset from(ListOffsetsResultInfo resultInfo) {
         return new Offset(resultInfo.offset(), resultInfo.timestamp(), resultInfo.leaderEpoch());
       }
@@ -213,7 +256,6 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
   }
 
   public record Node(int id, String host, int port, Optional<String> rack) {
-
     public static Node from(org.apache.kafka.common.Node node) {
       return new Node(
           node.id(),
@@ -231,7 +273,6 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
   }
 
   public record Config(Map<String, Entry> entries) {
-
     public static Config from(org.apache.kafka.clients.admin.Config config) {
       return new Config(
           config.entries().stream().collect(Collectors.toMap(ConfigEntry::name, Entry::from)));
@@ -251,7 +292,6 @@ public record Output(Cluster cluster, Map<String, Topic> topics) {
         boolean isDefault,
         String documentation,
         Map<String, String> synonyms) {
-
       public static Entry from(ConfigEntry e) {
         return new Entry(
             e.name(),

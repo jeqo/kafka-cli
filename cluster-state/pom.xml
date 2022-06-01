@@ -74,6 +74,12 @@
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.confluent</groupId>
+      <artifactId>kafka-schema-registry-client</artifactId>
+      <version>7.0.1</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -98,56 +104,12 @@
 
     <plugins>
       <plugin>
-        <groupId>com.spotify.fmt</groupId>
-        <artifactId>fmt-maven-plugin</artifactId>
-        <version>2.16</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <parameters>${maven.compiler.parameters}</parameters>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>enforce-plugin-versions</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireJavaVersion>
-                  <version>[${java.version},)</version>
-                </requireJavaVersion>
-                <requirePluginVersions>
-                  <banLatest>true</banLatest>
-                  <banRelease>true</banRelease>
-                  <banSnapshots>true</banSnapshots>
-                  <phases>clean,deploy,site</phases>
-                </requirePluginVersions>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
           <archive>
             <manifest>
-              <mainClass>kafka.cli.topics.list.Cli</mainClass>
+              <mainClass>kafka.cli.cluster.state.Cli</mainClass>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
             </manifest>
           </archive>
@@ -199,7 +161,7 @@
             <configuration>
               <buildDirectory>bin/</buildDirectory>
               <imageName>kfk-cluster-state-${project.version}</imageName>
-              <mainClass>kafka.cli.topics.list.Cli</mainClass>
+              <mainClass>kafka.cli.cluster.state.Cli</mainClass>
               <buildArgs>
                 <buildArg>--no-fallback</buildArg>
                 <buildArg>--allow-incomplete-classpath</buildArg>
@@ -263,7 +225,7 @@
                 <project>
                   <name>kafka-cli-cluster-state</name>
                   <java>
-                    <mainClass>kafka.cli.topics.list.Cli</mainClass>
+                    <mainClass>kafka.cli.cluster.state.Cli</mainClass>
                   </java>
                   <snapshot>
                     <label>{{ projectVersionNumber }}-early-access</label>
@@ -343,7 +305,7 @@
               <mainClass>picocli.codegen.docgen.manpage.ManPageGenerator</mainClass>
               <arguments>
                 <argument>--outdir=docs</argument>
-                <argument>kafka.cli.topics.list.Cli</argument>
+                <argument>kafka.cli.cluster.state.Cli</argument>
               </arguments>
             </configuration>
             <dependencies>
@@ -390,4 +352,15 @@
       </build>
     </profile>
   </profiles>
+
+  <repositories>
+    <repository>
+      <id>central</id>
+      <url>https://repo1.maven.org/maven2</url>
+    </repository>
+    <repository>
+      <id>confluent</id>
+      <url>https://packages.confluent.io/maven/</url>
+    </repository>
+  </repositories>
 </project>

@@ -1,10 +1,16 @@
-package kafka.cli.topics.list;
+package kafka.cli.cluster.state;
 
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import kafka.cli.topics.list.Cli.Opts;
+import java.util.stream.Collectors;
+import kafka.cli.cluster.state.Cli.Opts;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.admin.OffsetSpec;
@@ -14,9 +20,16 @@ import org.apache.kafka.common.TopicPartition;
 public final class Helper {
 
   final AdminClient adminClient;
+  final Optional<SchemaRegistryClient> srClient;
 
   Helper(AdminClient adminClient) {
     this.adminClient = adminClient;
+    this.srClient = Optional.empty();
+  }
+
+  Helper(AdminClient adminClient, SchemaRegistryClient srClient) {
+    this.adminClient = adminClient;
+    this.srClient = Optional.of(srClient);
   }
 
   List<String> filterTopics(Opts opts) throws InterruptedException, ExecutionException {
@@ -55,13 +68,52 @@ public final class Helper {
 
     final var configs = adminClient.describeConfigs(builder.configResources()).all().get();
 
-    return builder
+    final var srSubjects =
+        srClient.map(
+            sr -> {
+              try {
+                return opts.prefix()
+                    .map(
+                        p -> {
+                          try {
+                            return sr.getAllSubjectsByPrefix(p);
+                          } catch (IOException | RestClientException e) {
+                            throw new RuntimeException(e);
+                          }
+                        })
+                    .orElse(sr.getAllSubjects());
+              } catch (IOException | RestClientException e) {
+                throw new RuntimeException(e);
+              }
+            });
+
+    final var srSubjectsMetadata =
+        srClient.map(
+            sr ->
+                srSubjects
+                    .map(
+                        subjects ->
+                            subjects.stream()
+                                .map(
+                                    s -> {
+                                      try {
+                                        return Map.entry(s, sr.getLatestSchemaMetadata(s));
+                                      } catch (IOException | RestClientException e) {
+                                        throw new RuntimeException(e);
+                                      }
+                                    })
+                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+                    .orElse(Map.of()));
+    builder
         .withClusterId(describeClusterResult.clusterId().get())
         .withBrokers(describeClusterResult.nodes().get())
         .withTopicDescriptions(descriptions)
         .withStartOffsets(startOffsets)
         .withEndOffsets(endOffsets)
-        .withConfigs(configs)
-        .build();
+        .withConfigs(configs);
+
+    srSubjectsMetadata.ifPresent(builder::withSchemaRegistrySubjects);
+
+    return builder.build();
   }
 }
