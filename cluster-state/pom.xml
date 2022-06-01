@@ -147,7 +147,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>kafka.cli.topics.list.Cli</mainClass>
+              <mainClass>kafka.cli.cluster.state.Cli</mainClass>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
             </manifest>
           </archive>
@@ -199,7 +199,7 @@
             <configuration>
               <buildDirectory>bin/</buildDirectory>
               <imageName>kfk-cluster-state-${project.version}</imageName>
-              <mainClass>kafka.cli.topics.list.Cli</mainClass>
+              <mainClass>kafka.cli.cluster.state.Cli</mainClass>
               <buildArgs>
                 <buildArg>--no-fallback</buildArg>
                 <buildArg>--allow-incomplete-classpath</buildArg>
@@ -263,7 +263,7 @@
                 <project>
                   <name>kafka-cli-cluster-state</name>
                   <java>
-                    <mainClass>kafka.cli.topics.list.Cli</mainClass>
+                    <mainClass>kafka.cli.cluster.state.Cli</mainClass>
                   </java>
                   <snapshot>
                     <label>{{ projectVersionNumber }}-early-access</label>
@@ -343,7 +343,7 @@
               <mainClass>picocli.codegen.docgen.manpage.ManPageGenerator</mainClass>
               <arguments>
                 <argument>--outdir=docs</argument>
-                <argument>kafka.cli.topics.list.Cli</argument>
+                <argument>kafka.cli.cluster.state.Cli</argument>
               </arguments>
             </configuration>
             <dependencies>
