@@ -89,7 +89,7 @@ jobs:
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: quotas/
-        run: ../mvnw -B --file pom.xml -Prelease -DartifactsDir=artifacts jreleaser:full-release
+        run: ../mvnw -B --file pom.xml -Prelease -DartifactsDir=quotas/artifacts jreleaser:full-release
 
       - name: JReleaser output
         if: always()

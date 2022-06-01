@@ -186,7 +186,7 @@ jobs:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JRELEASER_HOMEBREW_GITHUB_TOKEN: ${{ secrets.JRELEASER_HOMEBREW_GITHUB_TOKEN }}
         working-directory: cluster-state
-        run: ../mvnw -B --file pom.xml -Prelease -DartifactsDir=artifacts jreleaser:full-release
+        run: ../mvnw -B --file pom.xml -Prelease -DartifactsDir=cluster-state/artifacts jreleaser:full-release
 
       - name: JReleaser output
         if: always()
