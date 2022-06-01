@@ -24,15 +24,15 @@ import picocli.CommandLine.IVersionProvider;
 import picocli.CommandLine.Option;
 
 @Command(
-  name = "kfk-cluster-state",
-  descriptionHeading = "Kafka CLI - Topic list",
-  description = """
+    name = "kfk-cluster-state",
+    descriptionHeading = "Kafka CLI - Topic list",
+    description =
+        """
                 List Kafka topics with metadata, partitions, replica placement, configuration,
                  and offsets at once.
                 """,
-  versionProvider = VersionProviderWithConfigProvider.class,
-  mixinStandardHelpOptions = true
-)
+    versionProvider = VersionProviderWithConfigProvider.class,
+    mixinStandardHelpOptions = true)
 public class Cli implements Callable<Integer> {
 
   public static void main(String[] args) {
@@ -41,22 +41,22 @@ public class Cli implements Callable<Integer> {
   }
 
   @Option(
-    names = { "-t", "--topics" },
-    description = "list of topic names to include"
-  )
+      names = {"-t", "--topics"},
+      description = "list of topic names to include")
   List<String> topics = new ArrayList<>();
 
-  @Option(names = { "-p", "--prefix" }, description = "Topic name prefix")
+  @Option(
+      names = {"-p", "--prefix"},
+      description = "Topic name prefix")
   Optional<String> prefix = Optional.empty();
 
   @ArgGroup(multiplicity = "1")
   PropertiesOption propertiesOption;
 
   @Option(
-    names = { "--pretty" },
-    defaultValue = "false",
-    description = "Print pretty/formatted JSON"
-  )
+      names = {"--pretty"},
+      defaultValue = "false",
+      description = "Print pretty/formatted JSON")
   boolean pretty;
 
   @Override
@@ -68,14 +68,12 @@ public class Cli implements Callable<Integer> {
 
     try (var adminClient = AdminClient.create(clientConfig)) {
       if (sr) {
-        var srClient = new CachedSchemaRegistryClient(
-          clientConfig.getProperty("schema.registry.url"),
-          10_000,
-          clientConfig
-            .keySet()
-            .stream()
-            .collect(Collectors.toMap(Object::toString, clientConfig::get))
-        );
+        var srClient =
+            new CachedSchemaRegistryClient(
+                clientConfig.getProperty("schema.registry.url"),
+                10_000,
+                clientConfig.keySet().stream()
+                    .collect(Collectors.toMap(Object::toString, clientConfig::get)));
         final var helper = new Helper(adminClient, srClient);
         final var output = helper.run(opts);
         out.println(output.toJson(pretty));
@@ -97,10 +95,8 @@ public class Cli implements Callable<Integer> {
   static class PropertiesOption {
 
     @CommandLine.Option(
-      names = { "-c", "--config" },
-      description = "Client configuration properties file." +
-      "Must include connection to Kafka"
-    )
+        names = {"-c", "--config"},
+        description = "Client configuration properties file." + "Must include connection to Kafka")
     Optional<Path> configPath;
 
     @ArgGroup(exclusive = false)
@@ -108,34 +104,31 @@ public class Cli implements Callable<Integer> {
 
     public Properties load() {
       return configPath
-        .map(path -> {
-          try {
-            final var p = new Properties();
-            p.load(Files.newInputStream(path));
-            return p;
-          } catch (Exception e) {
-            throw new IllegalArgumentException(
-              "ERROR: properties file at %s is failing to load".formatted(path)
-            );
-          }
-        })
-        .orElseGet(() -> {
-          try {
-            return contextOption.load();
-          } catch (IOException e) {
-            throw new IllegalArgumentException("ERROR: loading contexts");
-          }
-        });
+          .map(
+              path -> {
+                try {
+                  final var p = new Properties();
+                  p.load(Files.newInputStream(path));
+                  return p;
+                } catch (Exception e) {
+                  throw new IllegalArgumentException(
+                      "ERROR: properties file at %s is failing to load".formatted(path));
+                }
+              })
+          .orElseGet(
+              () -> {
+                try {
+                  return contextOption.load();
+                } catch (IOException e) {
+                  throw new IllegalArgumentException("ERROR: loading contexts");
+                }
+              });
     }
   }
 
   static class ContextOption {
 
-    @Option(
-      names = "--kafka",
-      description = "Kafka context name",
-      required = true
-    )
+    @Option(names = "--kafka", description = "Kafka context name", required = true)
     String kafkaContextName;
 
     @Option(names = "--sr", description = "Schema Registry context name")
@@ -158,18 +151,15 @@ public class Cli implements Callable<Integer> {
             props.putAll(srProps);
           } else {
             err.printf(
-              "WARN: Schema Registry context `%s` not found. Proceeding without it.%n",
-              srName
-            );
+                "WARN: Schema Registry context `%s` not found. Proceeding without it.%n", srName);
           }
         }
 
         return props;
       } else {
         err.printf(
-          "ERROR: Kafka context `%s` not found. Check that context already exist.%n",
-          kafkaContextName
-        );
+            "ERROR: Kafka context `%s` not found. Check that context already exist.%n",
+            kafkaContextName);
         return null;
       }
     }
@@ -180,8 +170,7 @@ public class Cli implements Callable<Integer> {
     @Override
     public String[] getVersion() throws IOException {
       final var url =
-        VersionProviderWithConfigProvider.class.getClassLoader()
-          .getResource("cli.properties");
+          VersionProviderWithConfigProvider.class.getClassLoader().getResource("cli.properties");
       if (url == null) {
         return new String[] {
           "No cli.properties file found in the classpath.",
@@ -190,10 +179,7 @@ public class Cli implements Callable<Integer> {
       final var properties = new Properties();
       properties.load(url.openStream());
       return new String[] {
-        properties.getProperty("appName") +
-        " version " +
-        properties.getProperty("appVersion") +
-        "",
+        properties.getProperty("appName") + " version " + properties.getProperty("appVersion") + "",
         "Built: " + properties.getProperty("appBuildTime"),
       };
     }

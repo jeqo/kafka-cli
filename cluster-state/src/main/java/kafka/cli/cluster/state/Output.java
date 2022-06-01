@@ -22,13 +22,9 @@ import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.config.ConfigResource;
 
 public record Output(
-  KafkaCluster kafkaCluster,
-  Map<String, Topic> topics,
-  SchemaRegistry schemaRegistry
-) {
-  static ObjectMapper json = new ObjectMapper()
-    .registerModule(new Jdk8Module())
-    .registerModule(new JavaTimeModule());
+    KafkaCluster kafkaCluster, Map<String, Topic> topics, SchemaRegistry schemaRegistry) {
+  static ObjectMapper json =
+      new ObjectMapper().registerModule(new Jdk8Module()).registerModule(new JavaTimeModule());
 
   public static Builder newBuilder(List<String> topicNames) {
     return new Builder(topicNames);
@@ -77,45 +73,37 @@ public record Output(
     }
 
     List<ConfigResource> configResources() {
-      return names
-        .stream()
-        .map(t -> new ConfigResource(ConfigResource.Type.TOPIC, t))
-        .toList();
+      return names.stream().map(t -> new ConfigResource(ConfigResource.Type.TOPIC, t)).toList();
     }
 
     Output build() {
       final var topics = new HashMap<String, Topic>();
       for (final var name : names) {
         final var description = descriptions.get(name);
-        var partitions = description
-          .partitions()
-          .stream()
-          .map(tpi -> {
-            final var tp = new TopicPartition(name, tpi.partition());
-            return Partition.from(
-              tpi,
-              startOffsets.get(tp),
-              endOffsets.get(tp)
-            );
-          })
-          .toList();
+        var partitions =
+            description.partitions().stream()
+                .map(
+                    tpi -> {
+                      final var tp = new TopicPartition(name, tpi.partition());
+                      return Partition.from(tpi, startOffsets.get(tp), endOffsets.get(tp));
+                    })
+                .toList();
         final var config = topicConfigs.get(name);
-        final var topic = new Topic(
-          name,
-          description.topicId().toString(),
-          partitions.size(),
-          partitions.get(0).replicas().size(),
-          description.isInternal(),
-          partitions,
-          config
-        );
+        final var topic =
+            new Topic(
+                name,
+                description.topicId().toString(),
+                partitions.size(),
+                partitions.get(0).replicas().size(),
+                description.isInternal(),
+                partitions,
+                config);
         topics.put(name, topic);
       }
       return new Output(
-        new KafkaCluster(clusterId, brokers.stream().map(Node::from).toList()),
-        topics,
-        srSubjects == null ? null : new SchemaRegistry(srSubjects)
-      );
+          new KafkaCluster(clusterId, brokers.stream().map(Node::from).toList()),
+          topics,
+          srSubjects == null ? null : new SchemaRegistry(srSubjects));
     }
 
     public Builder withClusterId(String id) {
@@ -128,9 +116,7 @@ public record Output(
       return this;
     }
 
-    public Builder withConfigs(
-      Map<ConfigResource, org.apache.kafka.clients.admin.Config> configs
-    ) {
+    public Builder withConfigs(Map<ConfigResource, org.apache.kafka.clients.admin.Config> configs) {
       final var map = new HashMap<String, Config>(configs.size());
       for (var configResource : configResources()) {
         var config = configs.get(configResource);
@@ -140,37 +126,32 @@ public record Output(
       return this;
     }
 
-    public Builder withStartOffsets(
-      Map<TopicPartition, ListOffsetsResultInfo> startOffsets
-    ) {
+    public Builder withStartOffsets(Map<TopicPartition, ListOffsetsResultInfo> startOffsets) {
       this.startOffsets = startOffsets;
       return this;
     }
 
-    public Builder withEndOffsets(
-      Map<TopicPartition, ListOffsetsResultInfo> endOffsets
-    ) {
+    public Builder withEndOffsets(Map<TopicPartition, ListOffsetsResultInfo> endOffsets) {
       this.endOffsets = endOffsets;
       return this;
     }
 
-    public Builder withTopicDescriptions(
-      Map<String, TopicDescription> descriptions
-    ) {
+    public Builder withTopicDescriptions(Map<String, TopicDescription> descriptions) {
       this.descriptions = descriptions;
       return this;
     }
 
     public Builder withSchemaRegistrySubjects(Map<String, SchemaMetadata> srm) {
       this.srSubjects = new HashMap<>(srm.size());
-      srm.forEach((subject, schemaMetadata) -> {
-        Subject s = new Subject(
-          schemaMetadata.getId(),
-          schemaMetadata.getSchemaType(),
-          schemaMetadata.getVersion()
-        );
-        srSubjects.put(subject, s);
-      });
+      srm.forEach(
+          (subject, schemaMetadata) -> {
+            Subject s =
+                new Subject(
+                    schemaMetadata.getId(),
+                    schemaMetadata.getSchemaType(),
+                    schemaMetadata.getVersion());
+            srSubjects.put(subject, s);
+          });
       return this;
     }
   }
@@ -200,31 +181,26 @@ public record Output(
   public record Subject(int id, String type, int currentVersion) {
     public JsonNode jsonNode() {
       var node = json.createObjectNode();
-      node
-        .put("id", id)
-        .put("schemaType", type)
-        .put("currentVersion", currentVersion);
+      node.put("id", id).put("schemaType", type).put("currentVersion", currentVersion);
       return node;
     }
   }
 
   public record Topic(
-    String name,
-    String id,
-    int partitionCount,
-    int replicationFactor,
-    boolean isInternal,
-    List<Partition> partitions,
-    Config config
-  ) {
+      String name,
+      String id,
+      int partitionCount,
+      int replicationFactor,
+      boolean isInternal,
+      List<Partition> partitions,
+      Config config) {
     public JsonNode jsonNode() {
       var node = json.createObjectNode();
-      node
-        .put("name", name)
-        .put("id", id)
-        .put("isInternal", isInternal)
-        .put("partitionCount", partitionCount)
-        .put("replicationFactor", replicationFactor);
+      node.put("name", name)
+          .put("id", id)
+          .put("isInternal", isInternal)
+          .put("partitionCount", partitionCount)
+          .put("replicationFactor", replicationFactor);
       var ps = node.putArray("partitions");
       partitions.forEach(p -> ps.add(p.jsonNode()));
       node.set("config", config.jsonNode());
@@ -233,36 +209,23 @@ public record Output(
   }
 
   public record Partition(
-    int id,
-    Integer leader,
-    List<Integer> replicas,
-    List<Integer> isr,
-    Offset startOffset,
-    Offset endOffset
-  ) {
+      int id,
+      Integer leader,
+      List<Integer> replicas,
+      List<Integer> isr,
+      Offset startOffset,
+      Offset endOffset) {
     public static Partition from(
-      TopicPartitionInfo topicPartitionInfo,
-      ListOffsetsResultInfo startOffset,
-      ListOffsetsResultInfo endOffset
-    ) {
+        TopicPartitionInfo topicPartitionInfo,
+        ListOffsetsResultInfo startOffset,
+        ListOffsetsResultInfo endOffset) {
       return new Partition(
-        topicPartitionInfo.partition(),
-        topicPartitionInfo.leader().id(),
-        topicPartitionInfo
-          .replicas()
-          .stream()
-          .map(Node::from)
-          .map(Node::id)
-          .toList(),
-        topicPartitionInfo
-          .isr()
-          .stream()
-          .map(Node::from)
-          .map(Node::id)
-          .toList(),
-        Offset.from(startOffset),
-        Offset.from(endOffset)
-      );
+          topicPartitionInfo.partition(),
+          topicPartitionInfo.leader().id(),
+          topicPartitionInfo.replicas().stream().map(Node::from).map(Node::id).toList(),
+          topicPartitionInfo.isr().stream().map(Node::from).map(Node::id).toList(),
+          Offset.from(startOffset),
+          Offset.from(endOffset));
     }
 
     public JsonNode jsonNode() {
@@ -278,17 +241,9 @@ public record Output(
       return node;
     }
 
-    public record Offset(
-      long offset,
-      long timestamp,
-      Optional<Integer> leaderEpoch
-    ) {
+    public record Offset(long offset, long timestamp, Optional<Integer> leaderEpoch) {
       static Offset from(ListOffsetsResultInfo resultInfo) {
-        return new Offset(
-          resultInfo.offset(),
-          resultInfo.timestamp(),
-          resultInfo.leaderEpoch()
-        );
+        return new Offset(resultInfo.offset(), resultInfo.timestamp(), resultInfo.leaderEpoch());
       }
 
       public JsonNode jsonNode() {
@@ -303,11 +258,10 @@ public record Output(
   public record Node(int id, String host, int port, Optional<String> rack) {
     public static Node from(org.apache.kafka.common.Node node) {
       return new Node(
-        node.id(),
-        node.host(),
-        node.port(),
-        node.hasRack() ? Optional.of(node.rack()) : Optional.empty()
-      );
+          node.id(),
+          node.host(),
+          node.port(),
+          node.hasRack() ? Optional.of(node.rack()) : Optional.empty());
     }
 
     public JsonNode jsonNode() {
@@ -321,11 +275,7 @@ public record Output(
   public record Config(Map<String, Entry> entries) {
     public static Config from(org.apache.kafka.clients.admin.Config config) {
       return new Config(
-        config
-          .entries()
-          .stream()
-          .collect(Collectors.toMap(ConfigEntry::name, Entry::from))
-      );
+          config.entries().stream().collect(Collectors.toMap(ConfigEntry::name, Entry::from)));
     }
 
     public JsonNode jsonNode() {
@@ -335,40 +285,33 @@ public record Output(
     }
 
     public record Entry(
-      String name,
-      String value,
-      boolean isReadOnly,
-      boolean isSensitive,
-      boolean isDefault,
-      String documentation,
-      Map<String, String> synonyms
-    ) {
+        String name,
+        String value,
+        boolean isReadOnly,
+        boolean isSensitive,
+        boolean isDefault,
+        String documentation,
+        Map<String, String> synonyms) {
       public static Entry from(ConfigEntry e) {
         return new Entry(
-          e.name(),
-          e.value(),
-          e.isReadOnly(),
-          e.isSensitive(),
-          e.isDefault(),
-          e.documentation(),
-          e
-            .synonyms()
-            .stream()
-            .collect(
-              Collectors.toMap(ConfigSynonym::name, ConfigSynonym::value)
-            )
-        );
+            e.name(),
+            e.value(),
+            e.isReadOnly(),
+            e.isSensitive(),
+            e.isDefault(),
+            e.documentation(),
+            e.synonyms().stream()
+                .collect(Collectors.toMap(ConfigSynonym::name, ConfigSynonym::value)));
       }
 
       public JsonNode jsonNode() {
         var node = json.createObjectNode();
-        node
-          .put("name", name)
-          .put("value", isSensitive ? "*****" : value)
-          .put("isReadOnly", isReadOnly)
-          .put("isSensitive", isSensitive)
-          .put("isDefault", isDefault)
-          .put("documentation", documentation);
+        node.put("name", name)
+            .put("value", isSensitive ? "*****" : value)
+            .put("isReadOnly", isReadOnly)
+            .put("isSensitive", isSensitive)
+            .put("isDefault", isDefault)
+            .put("documentation", documentation);
         var ss = node.putArray("synonyms");
         synonyms.forEach((k, v) -> ss.add(json.createObjectNode().put(k, v)));
         return node;
