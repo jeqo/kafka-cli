@@ -1,9 +1,9 @@
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:revnumber: kafka-cli-cluster-state version 0.2.2
+:revnumber: kafka-cli-cluster-state version 0.2.3
 :manmanual: Kfk-cluster-state Manual
-:mansource: kafka-cli-cluster-state version 0.2.2
+:mansource: kafka-cli-cluster-state version 0.2.3
 :man-linkstyle: pass:[blue R < >]
 = kfk-cluster-state(1)
 
