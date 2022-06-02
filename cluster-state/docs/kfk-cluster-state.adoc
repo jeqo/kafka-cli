@@ -1,9 +1,9 @@
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:revnumber: kafka-cli-cluster-state version 0.2.3
+:revnumber: kafka-cli-cluster-state version 0.3.0
 :manmanual: Kfk-cluster-state Manual
-:mansource: kafka-cli-cluster-state version 0.2.3
+:mansource: kafka-cli-cluster-state version 0.3.0
 :man-linkstyle: pass:[blue R < >]
 = kfk-cluster-state(1)
 
@@ -12,7 +12,9 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-kfk-cluster-state - List Kafka topics with metadata, partitions, replica placement, configuration, and offsets at once.
+kfk-cluster-state - List Kafka topics with metadata, partitions, replica placement, configuration,
+ and offsets at once.
+
 
 // end::picocli-generated-man-section-name[]
 
@@ -20,14 +22,17 @@ kfk-cluster-state - List Kafka topics with metadata, partitions, replica placeme
 == Synopsis
 
 *kfk-cluster-state* [*-hV*] [*--pretty*] [*-p*=_<prefix>_] [*-t*=_<topics>_]...
-                  (*-c*=_<configPath>_ | [*--kafka*=_<kafkaContextName>_])
+                  (*-c*=_<configPath>_ | [*--kafka*=_<kafkaContextName>_
+                  [*--sr*=_<srContextName>_]])
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-List Kafka topics with metadata, partitions, replica placement, configuration, and offsets at once.
+List Kafka topics with metadata, partitions, replica placement, configuration,
+ and offsets at once.
+
 
 // end::picocli-generated-man-section-description[]
 
@@ -48,6 +53,9 @@ List Kafka topics with metadata, partitions, replica placement, configuration, a
 
 *--pretty*::
   Print pretty/formatted JSON
+
+*--sr*=_<srContextName>_::
+  Schema Registry context name
 
 *-t*, *--topics*=_<topics>_::
   list of topic names to include

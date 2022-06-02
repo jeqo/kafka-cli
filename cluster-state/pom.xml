@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>kafka-cli-cluster-state</artifactId>
-  <version>0.2.4-SNAPSHOT</version>
+  <version>0.3.0</version>
 
   <name>kafka-cli-cluster-state</name>
   <description>Kafka: CLI: Topic List: Expand Kafka topic listing with Offsets and more.</description>
