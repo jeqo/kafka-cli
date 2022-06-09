@@ -46,7 +46,7 @@ import picocli.CommandLine.Option;
       PropertiesCommand.class,
       KCatCommand.class,
       EnvCommand.class,
-      SchemaRegistryContextsCommand.class
+      SchemaRegistryContextsCommand.class,
     },
     description = "Manage Kafka connection as contexts.")
 public class Cli implements Callable<Integer> {
@@ -369,10 +369,11 @@ public class Cli implements Callable<Integer> {
       name = "sr",
       subcommands = {
         SchemaRegistryContextsCommand.CreateCommand.class,
-        SchemaRegistryContextsCommand.DeleteCommand.class
+        SchemaRegistryContextsCommand.DeleteCommand.class,
       },
       description = "Manage Schema Registry connection properties as contexts.")
   static class SchemaRegistryContextsCommand implements Callable<Integer> {
+
     @Option(names = {"-v", "--verbose"})
     boolean verbose;
 
@@ -467,6 +468,7 @@ public class Cli implements Callable<Integer> {
   }
 
   static class UsernamePasswordOptions {
+
     @CommandLine.Option(
         names = {"--username", "-u"},
         description = "Username authentication")
@@ -494,7 +496,9 @@ public class Cli implements Callable<Integer> {
       final var url =
           VersionProviderWithConfigProvider.class.getClassLoader().getResource("cli.properties");
       if (url == null) {
-        return new String[] {"No cli.properties file found in the classpath."};
+        return new String[] {
+          "No cli.properties file found in the classpath.",
+        };
       }
       final var properties = new Properties();
       properties.load(url.openStream());

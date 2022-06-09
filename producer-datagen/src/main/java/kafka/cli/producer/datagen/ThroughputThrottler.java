@@ -1,6 +1,7 @@
 package kafka.cli.producer.datagen;
 
 public class ThroughputThrottler {
+
   private static final long NS_PER_MS = 1000000L;
   private static final long NS_PER_SEC = 1000 * NS_PER_MS;
   private static final long MIN_SLEEP_NS = 2 * NS_PER_MS;

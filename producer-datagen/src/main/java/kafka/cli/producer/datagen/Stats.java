@@ -6,7 +6,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 
 // From:
 // https://github.com/apache/kafka/blob/d706d6cac4622153973d131417e809ee57c60de0/tools/src/main/java/org/apache/kafka/tools/ProducerPerformance.java#L331-L438
-class Stats {
+public class Stats {
 
   private long start;
   private long windowStart;

@@ -1,35 +1,40 @@
 package kafka.cli.producer.datagen;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.confluent.avro.random.generator.Generator;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Random;
-import java.util.function.Supplier;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Parser;
 import org.apache.avro.SchemaParseException;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.EncoderFactory;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.config.ConfigException;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 /** Datagen side */
-public class PayloadGenerator implements Supplier<GenericRecord> {
+public class PayloadGenerator {
 
-  final Config config;
+  final Format format;
   final Random random;
   final Generator generator;
   final String keyFieldName;
 
   public PayloadGenerator(Config config) {
-    this.config = config;
-
+    this.format = config.format();
     this.random = new Random();
     config
         .randomSeed()
@@ -39,16 +44,15 @@ public class PayloadGenerator implements Supplier<GenericRecord> {
               random.setSeed(random.nextLong());
             });
 
-    generator =
+    this.generator =
         new Generator.Builder()
             .random(random)
             .generation(config.count())
             .schema(config.schema())
             .build();
-    keyFieldName = config.keyFieldName();
+    this.keyFieldName = config.keyFieldName();
   }
 
-  @Override
   public GenericRecord get() {
     final Object generatedObject = generator.generate();
     if (!(generatedObject instanceof GenericRecord)) {
@@ -58,6 +62,18 @@ public class PayloadGenerator implements Supplier<GenericRecord> {
               generatedObject.getClass().getName()));
     }
     return (GenericRecord) generatedObject;
+  }
+
+  public ProducerRecord<String, Object> record(String topicName) {
+    final var record = get();
+
+    final Object value;
+    if (format.equals(Format.JSON)) {
+      value = toJson(record);
+    } else {
+      value = record;
+    }
+    return new ProducerRecord<>(topicName, key(record), value);
   }
 
   String toJson(GenericRecord record) {
@@ -74,8 +90,8 @@ public class PayloadGenerator implements Supplier<GenericRecord> {
     }
   }
 
-  byte[] sample() {
-    if (config.format().equals(Format.AVRO)) {
+  public byte[] sample() {
+    if (format.equals(Format.AVRO)) {
       return toBytes(get());
     } else {
       return toJson(get()).getBytes(StandardCharsets.UTF_8);
@@ -97,50 +113,33 @@ public class PayloadGenerator implements Supplier<GenericRecord> {
   }
 
   public String key(GenericRecord payload) {
-    return String.valueOf(payload.get(config.keyFieldName()));
+    return String.valueOf(payload.get(keyFieldName));
   }
 
-  record Config(
+  public record Config(
       Optional<Long> randomSeed,
       Optional<Quickstart> quickstart,
       Optional<Path> schemaPath,
-      Optional<String> schemaString,
       long count,
       Format format) {
-
     Schema schema() {
       return quickstart
           .map(Quickstart::getSchemaFilename)
           .map(Config::getSchemaFromSchemaFileName)
           .orElse(
-              schemaString
-                  .map(Config::getSchemaFromSchemaString)
-                  .orElse(
-                      schemaPath
-                          .map(
-                              s -> {
-                                Schema schemaFromSchemaFileName = null;
-                                try {
-                                  schemaFromSchemaFileName =
-                                      getSchemaFromSchemaFileName(
-                                          Files.newInputStream(schemaPath.get()));
-                                } catch (IOException e) {
-                                  e.printStackTrace();
-                                }
-                                return schemaFromSchemaFileName;
-                              })
-                          .orElse(null)));
-    }
-
-    public static Schema getSchemaFromSchemaString(String schemaString) {
-      Schema.Parser schemaParser = new Parser();
-      Schema schema;
-      try {
-        schema = schemaParser.parse(schemaString);
-      } catch (SchemaParseException e) {
-        throw new ConfigException("Unable to parse the provided schema");
-      }
-      return schema;
+              schemaPath
+                  .map(
+                      s -> {
+                        Schema schemaFromSchemaFileName = null;
+                        try {
+                          schemaFromSchemaFileName =
+                              getSchemaFromSchemaFileName(Files.newInputStream(schemaPath.get()));
+                        } catch (IOException e) {
+                          e.printStackTrace();
+                        }
+                        return schemaFromSchemaFileName;
+                      })
+                  .orElse(null));
     }
 
     public static Schema getSchemaFromSchemaFileName(InputStream stream) {
@@ -165,25 +164,69 @@ public class PayloadGenerator implements Supplier<GenericRecord> {
     }
   }
 
-  enum Format {
+  public enum Format {
     JSON,
-    AVRO
+    AVRO,
   }
 
-  public static void main(String[] args) throws IOException {
-    var pg =
-        new PayloadGenerator(
-            new PayloadGenerator.Config(
-                Optional.empty(),
-                Optional.empty(),
-                Optional.of(Path.of("cli/producer-datagen/src/main/resources/inventory.avro")),
-                Optional.empty(),
-                1000000,
-                Format.JSON));
-    var bytes = pg.sample();
-    System.out.println(
-        new ObjectMapper()
-            .writerWithDefaultPrettyPrinter()
-            .writeValueAsString(new ObjectMapper().readTree(new String(bytes))));
+  public static Serializer<Object> valueSerializer(Format format, Properties producerConfig) {
+    Serializer<Object> valueSerializer;
+    if (format.equals(Format.AVRO)) {
+      valueSerializer = new KafkaAvroSerializer();
+      valueSerializer.configure(
+          producerConfig.keySet().stream()
+              .collect(Collectors.toMap(String::valueOf, producerConfig::get)),
+          false);
+    } else {
+      valueSerializer = (Serializer) new StringSerializer();
+    }
+    return valueSerializer;
+  }
+
+  public enum Quickstart {
+    CLICKSTREAM_CODES("clickstream_codes_schema.avro", "code"),
+    CLICKSTREAM("clickstream_schema.avro", "ip"),
+    CLICKSTREAM_USERS("clickstream_users_schema.avro", "user_id"),
+    ORDERS("orders_schema.avro", "orderid"),
+    RATINGS("ratings_schema.avro", "rating_id"),
+    USERS("users_schema.avro", "userid"),
+    USERS_("users_array_map_schema.avro", "userid"),
+    PAGEVIEWS("pageviews_schema.avro", "viewtime"),
+    STOCK_TRADES("stock_trades_schema.avro", "symbol"),
+    INVENTORY("inventory.avro", "id"),
+    PRODUCT("product.avro", "id"),
+    PURCHASES("purchase.avro", "id"),
+    TRANSACTIONS("transactions.avro", "transaction_id"),
+    STORES("stores.avro", "store_id"),
+    CREDIT_CARDS("credit_cards.avro", "card_id");
+
+    static final Set<String> configValues = new HashSet<>();
+
+    static {
+      for (Quickstart q : Quickstart.values()) {
+        configValues.add(q.name().toLowerCase());
+      }
+    }
+
+    private final String schemaFilename;
+    private final String keyName;
+
+    Quickstart(String schemaFilename, String keyName) {
+      this.schemaFilename = schemaFilename;
+      this.keyName = keyName;
+    }
+
+    public InputStream getSchemaFilename() {
+      try {
+        return Quickstart.class.getClassLoader().getResourceAsStream(schemaFilename);
+      } catch (SchemaParseException i) {
+        // log.error("Unable to parse the provided schema", i);
+        throw new ConfigException("Unable to parse the provided schema");
+      }
+    }
+
+    public String getSchemaKeyField() {
+      return keyName;
+    }
   }
 }

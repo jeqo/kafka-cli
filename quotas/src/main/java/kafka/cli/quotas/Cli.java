@@ -122,8 +122,7 @@ public class Cli implements Callable<Integer> {
         } else if (allIps) {
           final var quotas = quotaManager.allByIps();
           System.out.println(quotas.toJson());
-        } else // end of all by *
-        // start querying by params
+        } else // start querying by params // end of all by *
         if (!userClients.isEmpty()) {
           final var userClientMap =
               userClients.keySet().stream()
@@ -397,7 +396,9 @@ public class Cli implements Callable<Integer> {
       final var url =
           VersionProviderWithConfigProvider.class.getClassLoader().getResource("cli.properties");
       if (url == null) {
-        return new String[] {"No cli.properties file found in the classpath."};
+        return new String[] {
+          "No cli.properties file found in the classpath.",
+        };
       }
       final var properties = new Properties();
       properties.load(url.openStream());

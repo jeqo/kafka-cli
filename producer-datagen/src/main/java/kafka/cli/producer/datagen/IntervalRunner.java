@@ -5,14 +5,14 @@ import kafka.cli.producer.datagen.PayloadGenerator.Format;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
-public class IntervalRun {
+public class IntervalRunner {
 
   final Config config;
   final KafkaProducer<String, Object> producer;
   final PayloadGenerator payloadGenerator;
   final Stats stats;
 
-  public IntervalRun(
+  public IntervalRunner(
       Config config,
       KafkaProducer<String, Object> producer,
       PayloadGenerator payloadGenerator,
@@ -57,7 +57,7 @@ public class IntervalRun {
     var key = payloadGenerator.key(payload);
     Object value;
 
-    if (payloadGenerator.config.format().equals(Format.AVRO)) {
+    if (payloadGenerator.format.equals(Format.AVRO)) {
       value = payload;
     } else {
       value = payloadGenerator.toJson(payload);

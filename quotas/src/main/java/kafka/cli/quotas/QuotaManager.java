@@ -11,6 +11,7 @@ import org.apache.kafka.common.quota.ClientQuotaFilter;
 import org.apache.kafka.common.quota.ClientQuotaFilterComponent;
 
 public class QuotaManager {
+
   final AdminClient kafkaAdmin;
 
   public QuotaManager(AdminClient adminClient) {

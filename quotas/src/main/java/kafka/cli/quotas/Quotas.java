@@ -15,7 +15,6 @@ import org.apache.kafka.common.quota.ClientQuotaAlteration.Op;
 import org.apache.kafka.common.quota.ClientQuotaEntity;
 
 public record Quotas(List<Quota> quotas) {
-
   static final ObjectMapper jsonMapper = new ObjectMapper().registerModule(new Jdk8Module());
 
   public static Quotas empty() {
@@ -44,7 +43,6 @@ public record Quotas(List<Quota> quotas) {
   }
 
   record Quota(ClientEntity clientEntity, Constraint constraints) {
-
     public static Quota from(ClientQuotaEntity entity, Map<String, Double> quotas) {
       return new Quota(ClientEntity.from(entity), Constraint.from(quotas));
     }
@@ -68,7 +66,6 @@ public record Quotas(List<Quota> quotas) {
   record KafkaClientEntity(boolean isDefault, Optional<String> id) {}
 
   record ClientEntity(KafkaClientEntity user, KafkaClientEntity clientId, KafkaClientEntity ip) {
-
     public static ClientEntity from(ClientQuotaEntity entity) {
       final var entries = entity.entries();
       final var userEntity =
@@ -129,7 +126,6 @@ public record Quotas(List<Quota> quotas) {
       Optional<NetworkBandwidth> fetchRate,
       Optional<RequestRate> requestRate,
       Optional<ConnectionCreationRate> connectionCreationRate) {
-
     static Constraint from(Map<String, Double> quotas) {
       final var produceRate = quotas.get(QuotaConfigs.PRODUCER_BYTE_RATE_OVERRIDE_CONFIG);
       final var fetchRate = quotas.get(QuotaConfigs.CONSUMER_BYTE_RATE_OVERRIDE_CONFIG);
