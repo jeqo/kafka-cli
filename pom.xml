@@ -12,6 +12,61 @@
     <name>kafka-cli-parent</name>
     <url>https://github.com/jeqo/kafka-cli</url>
 
+    <properties>
+        <project.github.repository>jeqo/kafka-cli</project.github.repository>
+        <repository.url>git@github.com:${project.github.repository}.git</repository.url>
+        <local.repository.path>${project.build.directory}/repository</local.repository.path>
+        <nexus.url>https://s01.oss.sonatype.org</nexus.url>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <executable-suffix/>
+
+        <java.version>17</java.version>
+
+        <maven.compiler.parameters>true</maven.compiler.parameters>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+
+        <picocli.version>4.6.3</picocli.version>
+        <kafka.version>${version.clean.plugin}</kafka.version>
+        <confluent.version>7.0.1</confluent.version>
+        <kafka-context.version>0.2.0</kafka-context.version>
+        <jackson.version>2.13.3</jackson.version>
+        <slf4j.version>1.7.36</slf4j.version>
+        <junit.version>5.8.2</junit.version>
+
+        <jreleaser.git.root.search>true</jreleaser.git.root.search>
+
+        <app.name>${project.artifactId}</app.name>
+        <app.version>${project.version}</app.version>
+        <app.buildtime>${maven.build.timestamp}</app.buildtime>
+
+        <!-- Plugins -->
+        <version.antrun.plugin>3.0.0</version.antrun.plugin>
+        <version.assembly.plugin>3.3.0</version.assembly.plugin>
+        <version.clean.plugin>3.1.0</version.clean.plugin>
+        <version.compiler.plugin>3.9.0</version.compiler.plugin>
+        <version.dependency.plugin>3.1.2</version.dependency.plugin>
+        <version.deploy.plugin>3.0.0-M2</version.deploy.plugin>
+        <version.directory.plugin>0.3.1</version.directory.plugin>
+        <version.enforcer.plugin>3.0.0-M3</version.enforcer.plugin>
+        <version.enforcer.rules>1.5.1</version.enforcer.rules>
+        <version.failsafe.plugin>3.0.0-M5</version.failsafe.plugin>
+        <version.git.plugin>3.0.1</version.git.plugin>
+        <version.gpg.plugin>1.6</version.gpg.plugin>
+        <version.install.plugin>3.0.0-M1</version.install.plugin>
+        <version.javadoc.plugin>3.2.0</version.javadoc.plugin>
+        <version.jar.plugin>3.2.2</version.jar.plugin>
+        <version.license.plugin>4.0.rc2</version.license.plugin>
+        <version.nexus.plugin>1.6.8</version.nexus.plugin>
+        <version.resources.plugin>3.2.0</version.resources.plugin>
+        <version.site.plugin>3.10.0</version.site.plugin>
+        <version.source.plugin>3.2.1</version.source.plugin>
+        <version.surefire.plugin>3.0.0-M5</version.surefire.plugin>
+        <version.versions.plugin>2.8.1</version.versions.plugin>
+    </properties>
+
     <developers>
         <developer>
             <id>jeqo</id>
@@ -27,28 +82,29 @@
         </license>
     </licenses>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <scm>
+        <connection>scm:git:${repository.url}</connection>
+        <developerConnection>scm:git:${repository.url}</developerConnection>
+        <tag>HEAD</tag>
+        <url>${repository.url}</url>
+    </scm>
 
-        <executable-suffix/>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/${project.github.repository}/issues</url>
+    </issueManagement>
 
-        <java.version>17</java.version>
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <url>${nexus.url}/service/local/staging/deploy/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>${nexus.url}/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
-        <maven.compiler.parameters>true</maven.compiler.parameters>
-        <maven.compiler.release>${java.version}</maven.compiler.release>
-
-        <picocli.version>4.6.3</picocli.version>
-        <kafka.version>3.1.0</kafka.version>
-        <confluent.version>7.0.1</confluent.version>
-
-        <jreleaser.git.root.search>true</jreleaser.git.root.search>
-
-        <app.name>${project.artifactId}</app.name>
-        <app.version>${project.version}</app.version>
-        <app.buildtime>${maven.build.timestamp}</app.buildtime>
-        <jackson.version>2.13.3</jackson.version>
-    </properties>
 
     <modules>
         <module>cluster-state</module>
@@ -78,7 +134,7 @@
             <dependency>
                 <groupId>io.github.jeqo.kafka</groupId>
                 <artifactId>kafka-context</artifactId>
-                <version>0.2.0</version>
+                <version>${kafka-context.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -93,13 +149,13 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-simple</artifactId>
-                <version>1.7.36</version>
+                <version>${slf4j.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
-                <version>5.8.2</version>
+                <version>${junit.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -111,12 +167,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>${version.assembly.plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.9.0</version>
+                    <version>${version.compiler.plugin}</version>
                     <configuration>
                         <parameters>true</parameters>
                     </configuration>
@@ -124,47 +180,102 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>${version.clean.plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>3.0.0-M2</version>
+                    <version>${version.deploy.plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>3.0.0-M3</version>
+                    <version>${version.enforcer.plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.0.0-M5</version>
+                    <version>${version.failsafe.plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
-                    <version>3.0.0-M1</version>
+                    <version>${version.install.plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.2</version>
+                    <version>${version.jar.plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>${version.resources.plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>3.10.0</version>
+                    <version>${version.site.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>${version.gpg.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>${version.license.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>${version.antrun.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${version.dependency.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${version.javadoc.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>${version.site.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${version.source.plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M5</version>
+                    <version>${version.surefire.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <version>${version.versions.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.commonjava.maven.plugins</groupId>
+                    <artifactId>directory-maven-plugin</artifactId>
+                    <version>${version.directory.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>${version.nexus.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>pl.project13.maven</groupId>
+                    <artifactId>git-commit-id-plugin</artifactId>
+                    <version>${version.git.plugin}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -214,8 +325,258 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Build-Jdk>${java.version} (${java.vendor} ${java.vm.version})</Build-Jdk>
+                            <Build-Timestamp>${git.build.time}</Build-Timestamp>
+                            <Build-Revision>${git.commit.id}</Build-Revision>
+                            <Build-OS>${os.name} ${os.arch} ${os.version}</Build-OS>
+                        </manifestEntries>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.commonjava.maven.plugins</groupId>
+                <artifactId>directory-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>resolve-rootdir</id>
+                        <goals>
+                            <goal>highest-basedir</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <property>rootdir</property>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>resolve-git-properties</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <verbose>false</verbose>
+                            <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                            <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                            <generateGitPropertiesFilename>${project.build.directory}/git.properties</generateGitPropertiesFilename>
+                            <dateFormat>yyyy-MM-dd'T'HH:mm:ssXXX</dateFormat>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>3.0.0-M1</version>
+                <configuration>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>publication,gpg</releaseProfiles>
+                    <autoVersionSubmodules>false</autoVersionSubmodules>
+                    <pushChanges>false</pushChanges>
+                    <remoteTagging>false</remoteTagging>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.8</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>${nexus.url}</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>publication</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <!--          <plugin>-->
+                    <!--            <groupId>com.coderplus.maven.plugins</groupId>-->
+                    <!--            <artifactId>copy-rename-maven-plugin</artifactId>-->
+                    <!--            <version>1.0.1</version>-->
+                    <!--            <executions>-->
+                    <!--              <execution>-->
+                    <!--                <id>copy-license-file</id>-->
+                    <!--                <goals>-->
+                    <!--                  <goal>copy</goal>-->
+                    <!--                </goals>-->
+                    <!--                <phase>generate-sources</phase>-->
+                    <!--                <configuration>-->
+                    <!--                  <sourceFile>${session.executionRootDirectory}/LICENSE</sourceFile>-->
+                    <!--                  <destinationFile>${project.build.outputDirectory}/META-INF/LICENSE-${project.identifier}</destinationFile>-->
+                    <!--                </configuration>-->
+                    <!--              </execution>-->
+                    <!--            </executions>-->
+                    <!--          </plugin>-->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <attach>true</attach>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <attach>true</attach>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>gpg</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>remote-deploy</id>
+            <activation>
+                <property>
+                    <name>release</name>
+                </property>
+            </activation>
+            <build>
+                <defaultGoal>deploy</defaultGoal>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>local-deploy</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>local-snapshot</id>
+                    <url>file://${local.repository.path}/snapshot</url>
+                </snapshotRepository>
+                <repository>
+                    <id>local-release</id>
+                    <url>file://${local.repository.path}/release</url>
+                </repository>
+            </distributionManagement>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>${local.repository.path}</directory>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <inherited>false</inherited>
+                        <executions>
+                            <execution>
+                                <id>generate-repository-directories</id>
+                                <phase>generate-sources</phase>
+                                <configuration>
+                                    <target>
+                                        <mkdir dir="${local.repository.path}/snapshot" />
+                                        <mkdir dir="${local.repository.path}/release" />
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <repositories>
         <repository>
