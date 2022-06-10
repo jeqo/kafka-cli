@@ -122,6 +122,11 @@ public class PayloadGenerator {
       Optional<Path> schemaPath,
       long count,
       Format format) {
+
+    public static Config create(Quickstart quickstart, long count, Format format) {
+      return new Config(Optional.empty(), Optional.of(quickstart), Optional.empty(), count, format);
+    }
+
     Schema schema() {
       return quickstart
           .map(Quickstart::getSchemaFilename)

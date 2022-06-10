@@ -79,7 +79,6 @@ public class PerformanceRunner {
     if (config.transactionsEnabled() && currentTransactionSize != 0) producer.commitTransaction();
 
     if (!config.shouldPrintMetrics()) {
-      producer.close();
 
       /* print final results */
       stats.printTotal();
@@ -95,7 +94,6 @@ public class PerformanceRunner {
       stats.printTotal();
 
       printMetrics(producer.metrics());
-      producer.close();
     }
   }
 

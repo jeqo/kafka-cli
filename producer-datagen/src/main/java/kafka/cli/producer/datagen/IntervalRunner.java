@@ -42,7 +42,6 @@ public class IntervalRunner {
     if (config.maxRecords() > 0 && count >= config.maxRecords()) {
       stats.printTotal();
 
-      producer.close();
       return;
     }
 
