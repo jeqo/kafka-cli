@@ -111,6 +111,7 @@
         <module>context</module>
         <module>producer-datagen</module>
         <module>quotas</module>
+        <module>zip</module>
     </modules>
 
     <dependencyManagement>
