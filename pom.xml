@@ -111,7 +111,7 @@
         <module>context</module>
         <module>producer-datagen</module>
         <module>quotas</module>
-        <module>zip</module>
+        <module>emulator</module>
     </modules>
 
     <dependencyManagement>
