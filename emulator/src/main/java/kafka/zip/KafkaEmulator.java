@@ -1,14 +1,18 @@
 package kafka.zip;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import kafka.context.KafkaContexts;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 
 public class KafkaEmulator {
 
@@ -23,9 +27,8 @@ public class KafkaEmulator {
    * @param topics
    * @param fromBeginning // TODO replace with startCondition // TODO add endCondition
    * @return
-   * @throws IOException
    */
-  public RecordResult record(
+  public RecordingResult record(
       KafkaContexts.KafkaContext kafkaContext, List<String> topics, boolean fromBeginning)
       throws IOException {
     final var endTime = System.currentTimeMillis();
@@ -86,7 +89,7 @@ public class KafkaEmulator {
         done = true;
       }
     }
-    return null;
+    return new RecordingResult(archive);
   }
 
   private boolean isDone(EmulatorArchive archive) {
@@ -100,14 +103,22 @@ public class KafkaEmulator {
    * @param kafkaContext
    * @return
    */
-  public ReplayResult replay(KafkaContexts.KafkaContext kafkaContext) {
+  public ReplayResult replay(KafkaContexts.KafkaContext kafkaContext, Path directory) throws IOException {
+    //create producer
+    var keySerializer = new ByteArraySerializer();
+    var valueSerializer = new ByteArraySerializer();
+    var producer = new KafkaProducer<>(kafkaContext.properties(), keySerializer, valueSerializer);
+    //per partition
+    //per record
+    //prepare record
+    //wait
     return null;
   }
 
-  private class RecordResult {
+  private class RecordingResult {
     final EmulatorArchive archive;
 
-    private RecordResult(EmulatorArchive archive) {
+    private RecordingResult(EmulatorArchive archive) {
       this.archive = archive;
     }
   }
@@ -118,5 +129,6 @@ public class KafkaEmulator {
     var zip = new KafkaEmulator();
     var context = KafkaContexts.load().get("local");
     var result = zip.record(context, List.of("t1"), true);
+    result.archive.save();
   }
 }
