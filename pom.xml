@@ -29,9 +29,9 @@
         <maven.compiler.release>${java.version}</maven.compiler.release>
 
         <picocli.version>4.6.3</picocli.version>
-        <kafka.version>${version.clean.plugin}</kafka.version>
+        <kafka.version>3.1.0</kafka.version>
         <confluent.version>7.0.1</confluent.version>
-        <kafka-context.version>0.2.0</kafka-context.version>
+        <kafka-context.version>0.3.1-SNAPSHOT</kafka-context.version>
         <jackson.version>2.13.3</jackson.version>
         <slf4j.version>1.7.36</slf4j.version>
         <junit.version>5.8.2</junit.version>
@@ -245,11 +245,6 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <version>${version.site.plugin}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
                     <version>${version.source.plugin}</version>
                 </plugin>
@@ -283,11 +278,20 @@
 
         <plugins>
             <plugin>
-                <groupId>com.spotify.fmt</groupId>
-                <artifactId>fmt-maven-plugin</artifactId>
-                <version>2.16</version>
+                <groupId>com.hubspot.maven.plugins</groupId>
+                <artifactId>prettier-maven-plugin</artifactId>
+                <version>0.16</version>
+                <configuration>
+                    <prettierJavaVersion>1.5.0</prettierJavaVersion>
+                    <printWidth>90</printWidth>
+                    <tabWidth>2</tabWidth>
+                    <useTabs>false</useTabs>
+                    <ignoreConfigFile>true</ignoreConfigFile>
+                    <ignoreEditorConfig>true</ignoreEditorConfig>
+                </configuration>
                 <executions>
                     <execution>
+                        <phase>validate</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>

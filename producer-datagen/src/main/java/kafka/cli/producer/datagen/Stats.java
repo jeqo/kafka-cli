@@ -72,12 +72,13 @@ public class Stats {
     double recsPerSec = 1000.0 * windowCount / (double) elapsed;
     double mbPerSec = 1000.0 * this.windowBytes / (double) elapsed / (1024.0 * 1024.0);
     System.out.printf(
-        "%d records sent, %.1f records/sec (%.2f MB/sec), %.1f ms avg latency, %.1f ms max latency.%n",
-        windowCount,
-        recsPerSec,
-        mbPerSec,
-        windowTotalLatency / (double) windowCount,
-        (double) windowMaxLatency);
+      "%d records sent, %.1f records/sec (%.2f MB/sec), %.1f ms avg latency, %.1f ms max latency.%n",
+      windowCount,
+      recsPerSec,
+      mbPerSec,
+      windowTotalLatency / (double) windowCount,
+      (double) windowMaxLatency
+    );
   }
 
   public void newWindow() {
@@ -94,16 +95,17 @@ public class Stats {
     double mbPerSec = 1000.0 * this.bytes / (double) elapsed / (1024.0 * 1024.0);
     int[] percs = percentiles(this.latencies, index, 0.5, 0.95, 0.99, 0.999);
     System.out.printf(
-        "%d records sent, %f records/sec (%.2f MB/sec), %.2f ms avg latency, %.2f ms max latency, %d ms 50th, %d ms 95th, %d ms 99th, %d ms 99.9th.%n",
-        count,
-        recsPerSec,
-        mbPerSec,
-        totalLatency / (double) count,
-        (double) maxLatency,
-        percs[0],
-        percs[1],
-        percs[2],
-        percs[3]);
+      "%d records sent, %f records/sec (%.2f MB/sec), %.2f ms avg latency, %.2f ms max latency, %d ms 50th, %d ms 95th, %d ms 99th, %d ms 99.9th.%n",
+      count,
+      recsPerSec,
+      mbPerSec,
+      totalLatency / (double) count,
+      (double) maxLatency,
+      percs[0],
+      percs[1],
+      percs[2],
+      percs[3]
+    );
   }
 
   private static int[] percentiles(int[] latencies, int count, double... percentiles) {

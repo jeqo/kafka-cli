@@ -21,13 +21,18 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+import kafka.context.KafkaCluster;
+import kafka.context.KafkaContext;
 import kafka.context.KafkaContexts;
-import kafka.context.KafkaContexts.KafkaContext;
-import kafka.context.SchemaRegistryContexts;
-import kafka.context.SchemaRegistryContexts.SchemaRegistryAuth;
-import kafka.context.SchemaRegistryContexts.SchemaRegistryCluster;
-import kafka.context.SchemaRegistryContexts.SchemaRegistryContext;
-import kafka.context.SchemaRegistryContexts.UsernamePasswordAuth;
+import kafka.context.auth.KafkaAuth;
+import kafka.context.auth.KafkaNoAuth;
+import kafka.context.auth.KafkaUsernamePasswordAuth;
+import kafka.context.sr.SchemaRegistryCluster;
+import kafka.context.sr.SchemaRegistryContext;
+import kafka.context.sr.SchemaRegistryContexts;
+import kafka.context.sr.auth.HttpNoAuth;
+import kafka.context.sr.auth.HttpUsernamePasswordAuth;
+import kafka.context.sr.auth.SchemaRegistryAuth;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
@@ -36,24 +41,25 @@ import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Option;
 
 @CommandLine.Command(
-    name = KFK_CTX_CMD,
-    versionProvider = Cli.VersionProviderWithConfigProvider.class,
-    mixinStandardHelpOptions = true,
-    subcommands = {
-      CreateCommand.class,
-      DeleteCommand.class,
-      TestCommand.class,
-      PropertiesCommand.class,
-      KCatCommand.class,
-      EnvCommand.class,
-      SchemaRegistryContextsCommand.class,
-    },
-    description = "Manage Kafka connection as contexts.")
+  name = KFK_CTX_CMD,
+  versionProvider = Cli.VersionProviderWithConfigProvider.class,
+  mixinStandardHelpOptions = true,
+  subcommands = {
+    CreateCommand.class,
+    DeleteCommand.class,
+    TestCommand.class,
+    PropertiesCommand.class,
+    KCatCommand.class,
+    EnvCommand.class,
+    SchemaRegistryContextsCommand.class,
+  },
+  description = "Manage Kafka connection as contexts."
+)
 public class Cli implements Callable<Integer> {
 
   public static final String KFK_CTX_CMD = "kfk-ctx";
 
-  @Option(names = {"-v", "--verbose"})
+  @Option(names = { "-v", "--verbose" })
   boolean verbose;
 
   public static void main(String[] args) {
@@ -73,23 +79,27 @@ public class Cli implements Callable<Integer> {
   }
 
   @CommandLine.Command(
-      name = "create",
-      description = "Register a Kafka context. Destination: ~/.kafka/kafka.json")
+    name = "create",
+    description = "Register a Kafka context. Destination: ~/.kafka/kafka.json"
+  )
   static class CreateCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "Kafka context name. e.g. `local`")
     String name;
 
-    @CommandLine.Parameters(index = "1", description = "Bootstrap servers. e.g. `localhost:9092`")
+    @CommandLine.Parameters(
+      index = "1",
+      description = "Bootstrap servers. e.g. `localhost:9092`"
+    )
     String bootstrapServers;
 
     @CommandLine.Option(
-        names = "--auth",
-        description =
-            "Authentication method (default: ${DEFAULT-VALUE}). Valid values: ${COMPLETION-CANDIDATES}",
-        required = true,
-        defaultValue = "PLAINTEXT")
-    KafkaContexts.KafkaAuth.AuthType authType;
+      names = "--auth",
+      description = "Authentication method (default: ${DEFAULT-VALUE}). Valid values: ${COMPLETION-CANDIDATES}",
+      required = true,
+      defaultValue = "PLAINTEXT"
+    )
+    KafkaAuth.AuthType authType;
 
     @ArgGroup(exclusive = false)
     UsernamePasswordOptions usernamePasswordOptions;
@@ -99,21 +109,25 @@ public class Cli implements Callable<Integer> {
       final var contexts = KafkaContexts.load();
 
       try {
-        final KafkaContexts.KafkaAuth auth =
-            switch (authType) {
-              case SASL_PLAIN -> KafkaContexts.UsernamePasswordAuth.build(
-                  authType, usernamePasswordOptions.username, usernamePasswordOptions.password());
-              default -> new KafkaContexts.NoAuth();
-            };
-        final var ctx =
-            new KafkaContext(name, new KafkaContexts.KafkaCluster(bootstrapServers, auth));
+        final KafkaAuth auth =
+          switch (authType) {
+            case SASL_PLAIN -> KafkaUsernamePasswordAuth.build(
+              authType,
+              usernamePasswordOptions.username,
+              usernamePasswordOptions.password()
+            );
+            default -> new KafkaNoAuth();
+          };
+        final var ctx = new KafkaContext(name, new KafkaCluster(bootstrapServers, auth));
 
         contexts.add(ctx);
         KafkaContexts.save(contexts);
 
         out.printf(
-            "Kafka context `%s` with bootstrap-servers [%s] is saved.",
-            ctx.name(), ctx.cluster().bootstrapServers());
+          "Kafka context `%s` with bootstrap-servers [%s] is saved.",
+          ctx.name(),
+          ctx.cluster().bootstrapServers()
+        );
         return 0;
       } catch (IllegalArgumentException e) {
         err.println("ERROR: " + e.getMessage());
@@ -123,8 +137,9 @@ public class Cli implements Callable<Integer> {
   }
 
   @CommandLine.Command(
-      name = "delete",
-      description = "Removes context. Destination: ~/.kafka/kafka.json")
+    name = "delete",
+    description = "Removes context. Destination: ~/.kafka/kafka.json"
+  )
   static class DeleteCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "Kafka context name. e.g. `local`")
@@ -140,8 +155,10 @@ public class Cli implements Callable<Integer> {
         KafkaContexts.save(contexts);
 
         out.printf(
-            "Kafka context `%s` with bootstrap servers: [%s] is deleted.%n",
-            ctx.name(), ctx.cluster().bootstrapServers());
+          "Kafka context `%s` with bootstrap servers: [%s] is deleted.%n",
+          ctx.name(),
+          ctx.cluster().bootstrapServers()
+        );
         return 0;
       } else {
         out.printf("Kafka context `%s` is not registered.%n", name);
@@ -151,16 +168,18 @@ public class Cli implements Callable<Integer> {
   }
 
   @CommandLine.Command(
-      name = "properties",
-      description = "Get properties configurations for contexts")
+    name = "properties",
+    description = "Get properties configurations for contexts"
+  )
   static class PropertiesCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "Kafka context name")
     String name;
 
     @Option(
-        names = {"--schema-registry", "-sr"},
-        description = "Schema Registry context name")
+      names = { "--schema-registry", "-sr" },
+      description = "Schema Registry context name"
+    )
     Optional<String> schemeRegistryContext;
 
     @Override
@@ -177,12 +196,16 @@ public class Cli implements Callable<Integer> {
             final var srCtx = srContexts.get(schemeRegistryContext.get());
             final var srProps = srCtx.properties();
 
-            srProps.store(out, "Schema Registry client properties generated by " + KFK_CTX_CMD);
+            srProps.store(
+              out,
+              "Schema Registry client properties generated by " + KFK_CTX_CMD
+            );
           } else {
             System.err.printf(
-                "WARN: Schema Registry context %s does not exist. "
-                    + "Schema Registry connection properties will not be included",
-                schemeRegistryContext.get());
+              "WARN: Schema Registry context %s does not exist. " +
+              "Schema Registry connection properties will not be included",
+              schemeRegistryContext.get()
+            );
           }
         }
       } else {
@@ -200,8 +223,9 @@ public class Cli implements Callable<Integer> {
     String name;
 
     @Option(
-        names = {"--schema-registry", "-sr"},
-        description = "Schema Registry context name")
+      names = { "--schema-registry", "-sr" },
+      description = "Schema Registry context name"
+    )
     Optional<String> schemeRegistryContext;
 
     @Override
@@ -211,20 +235,25 @@ public class Cli implements Callable<Integer> {
         final var ctx = contexts.get(name);
         final var props = ctx.properties();
 
-        final var bootstrapServers = props.get(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG);
+        final var bootstrapServers = props.get(
+          CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
+        );
         try (final var admin = AdminClient.create(props)) {
-          final var clusterId =
-              admin
-                  .describeCluster(new DescribeClusterOptions().timeoutMs(10_000))
-                  .clusterId()
-                  .get();
+          final var clusterId = admin
+            .describeCluster(new DescribeClusterOptions().timeoutMs(10_000))
+            .clusterId()
+            .get();
           out.printf(
-              "Connection to Kafka `%s` [%s] (id=%s) succeed%n", name, bootstrapServers, clusterId);
+            "Connection to Kafka `%s` [%s] (id=%s) succeed%n",
+            name,
+            bootstrapServers,
+            clusterId
+          );
           admin
-              .describeCluster()
-              .nodes()
-              .get()
-              .forEach(node -> System.err.println("Node: " + node));
+            .describeCluster()
+            .nodes()
+            .get()
+            .forEach(node -> System.err.println("Node: " + node));
         } catch (Exception e) {
           out.printf("Connection to Kafka `%s` [%s] failed%n", name, bootstrapServers);
           e.printStackTrace();
@@ -239,35 +268,42 @@ public class Cli implements Callable<Integer> {
 
             final var auth = srCtx.cluster().auth();
             final var httpClient =
-                switch (auth.type()) {
-                  case BASIC_AUTH -> HttpClient.newBuilder()
-                      .authenticator(
-                          new Authenticator() {
-                            @Override
-                            protected PasswordAuthentication getPasswordAuthentication() {
-                              final var basicAuth = (UsernamePasswordAuth) auth;
-                              return basicAuth.passwordAuth();
-                            }
-                          })
-                      .build();
-                  case NO_AUTH -> HttpClient.newHttpClient();
-                };
+              switch (auth.type()) {
+                case BASIC_AUTH -> HttpClient
+                  .newBuilder()
+                  .authenticator(
+                    new Authenticator() {
+                      @Override
+                      protected PasswordAuthentication getPasswordAuthentication() {
+                        final var basicAuth = (HttpUsernamePasswordAuth) auth;
+                        return basicAuth.passwordAuth();
+                      }
+                    }
+                  )
+                  .build();
+                case NO_AUTH -> HttpClient.newHttpClient();
+              };
             final var urls = srCtx.cluster().urls();
-            final var response =
-                httpClient.send(
-                    HttpRequest.newBuilder().uri(URI.create(urls)).GET().build(),
-                    BodyHandlers.discarding());
+            final var response = httpClient.send(
+              HttpRequest.newBuilder().uri(URI.create(urls)).GET().build(),
+              BodyHandlers.discarding()
+            );
             if (response.statusCode() == 200) {
               out.printf("Connection to Schema Registry `%s` [%s] succeed%n", sr, urls);
             } else {
-              out.printf("Connection to Schema Registry `%s` URL(s): [%s] failed%n", sr, urls);
+              out.printf(
+                "Connection to Schema Registry `%s` URL(s): [%s] failed%n",
+                sr,
+                urls
+              );
               return 1;
             }
           } else {
             out.printf(
-                "WARN: Schema Registry context %s does not exist. "
-                    + "Schema Registry connection properties will not be tested",
-                sr);
+              "WARN: Schema Registry context %s does not exist. " +
+              "Schema Registry connection properties will not be tested",
+              sr
+            );
           }
         }
       } else {
@@ -278,20 +314,22 @@ public class Cli implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(name = "env", description = "env command with properties from context")
+  @CommandLine.Command(
+    name = "env",
+    description = "env command with properties from context"
+  )
   static class EnvCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "Context name")
     String name;
 
     @Option(
-        names = {"--schema-registry", "-sr"},
-        description = "Schema Registry context name")
+      names = { "--schema-registry", "-sr" },
+      description = "Schema Registry context name"
+    )
     Optional<String> schemeRegistryContext;
 
-    @Option(
-        names = {"--auth"},
-        description = "Include auth env variables")
+    @Option(names = { "--auth" }, description = "Include auth env variables")
     boolean includeAuth;
 
     @Override
@@ -310,8 +348,9 @@ public class Cli implements Callable<Integer> {
             out.println(env + "\n" + srProps);
           } else {
             System.err.printf(
-                "WARN: Schema Registry context %s does not exist. Schema Registry connection properties will not be included",
-                schemeRegistryContext.get());
+              "WARN: Schema Registry context %s does not exist. Schema Registry connection properties will not be included",
+              schemeRegistryContext.get()
+            );
           }
         } else {
           out.println(env);
@@ -324,15 +363,19 @@ public class Cli implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(name = "kcat", description = "kcat command with properties from context")
+  @CommandLine.Command(
+    name = "kcat",
+    description = "kcat command with properties from context"
+  )
   static class KCatCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "Context name")
     String name;
 
     @Option(
-        names = {"--schema-registry", "-sr"},
-        description = "Schema Registry context name")
+      names = { "--schema-registry", "-sr" },
+      description = "Schema Registry context name"
+    )
     Optional<String> schemeRegistryContext;
 
     @Override
@@ -351,8 +394,9 @@ public class Cli implements Callable<Integer> {
             out.println(kcat + srProps);
           } else {
             System.err.printf(
-                "WARN: Schema Registry context %s does not exist. Schema Registry connection properties will not be included",
-                schemeRegistryContext.get());
+              "WARN: Schema Registry context %s does not exist. Schema Registry connection properties will not be included",
+              schemeRegistryContext.get()
+            );
           }
         } else {
           out.println(kcat);
@@ -366,15 +410,16 @@ public class Cli implements Callable<Integer> {
   }
 
   @CommandLine.Command(
-      name = "sr",
-      subcommands = {
-        SchemaRegistryContextsCommand.CreateCommand.class,
-        SchemaRegistryContextsCommand.DeleteCommand.class,
-      },
-      description = "Manage Schema Registry connection properties as contexts.")
+    name = "sr",
+    subcommands = {
+      SchemaRegistryContextsCommand.CreateCommand.class,
+      SchemaRegistryContextsCommand.DeleteCommand.class,
+    },
+    description = "Manage Schema Registry connection properties as contexts."
+  )
   static class SchemaRegistryContextsCommand implements Callable<Integer> {
 
-    @Option(names = {"-v", "--verbose"})
+    @Option(names = { "-v", "--verbose" })
     boolean verbose;
 
     @Override
@@ -389,24 +434,26 @@ public class Cli implements Callable<Integer> {
     }
 
     @CommandLine.Command(
-        name = "create",
-        description = "Register context. Destination: ~/.kafka/schema-registry.json")
+      name = "create",
+      description = "Register context. Destination: ~/.kafka/schema-registry.json"
+    )
     static class CreateCommand implements Callable<Integer> {
 
       @CommandLine.Parameters(index = "0", description = "Context name. e.g. `local`")
       String name;
 
       @CommandLine.Parameters(
-          index = "1",
-          description = "Schema Registry URLs. e.g. `http://localhost:8081`")
+        index = "1",
+        description = "Schema Registry URLs. e.g. `http://localhost:8081`"
+      )
       String urls;
 
       @CommandLine.Option(
-          names = "--auth",
-          description =
-              "Authentication type (default: ${DEFAULT-VALUE}). Valid values: ${COMPLETION-CANDIDATES}",
-          required = true,
-          defaultValue = "NO_AUTH")
+        names = "--auth",
+        description = "Authentication type (default: ${DEFAULT-VALUE}). Valid values: ${COMPLETION-CANDIDATES}",
+        required = true,
+        defaultValue = "NO_AUTH"
+      )
       SchemaRegistryAuth.AuthType authType;
 
       @ArgGroup(exclusive = false)
@@ -417,19 +464,27 @@ public class Cli implements Callable<Integer> {
         var contexts = SchemaRegistryContexts.load();
         try {
           final SchemaRegistryAuth auth =
-              switch (authType) {
-                case BASIC_AUTH -> SchemaRegistryContexts.UsernamePasswordAuth.build(
-                    authType, usernamePasswordOptions.username, usernamePasswordOptions.password());
-                default -> new SchemaRegistryContexts.NoAuth();
-              };
-          final var ctx = new SchemaRegistryContext(name, new SchemaRegistryCluster(urls, auth));
+            switch (authType) {
+              case BASIC_AUTH -> HttpUsernamePasswordAuth.build(
+                authType,
+                usernamePasswordOptions.username,
+                usernamePasswordOptions.password()
+              );
+              default -> new HttpNoAuth();
+            };
+          final var ctx = new SchemaRegistryContext(
+            name,
+            new SchemaRegistryCluster(urls, auth)
+          );
 
           contexts.add(ctx);
           SchemaRegistryContexts.save(contexts);
 
           out.printf(
-              "Schema Registry context `%s` with URL(s): [%s] is saved.",
-              ctx.name(), ctx.cluster().urls());
+            "Schema Registry context `%s` with URL(s): [%s] is saved.",
+            ctx.name(),
+            ctx.cluster().urls()
+          );
           return 0;
         } catch (IllegalArgumentException e) {
           err.println("ERROR: " + e.getMessage());
@@ -439,8 +494,9 @@ public class Cli implements Callable<Integer> {
     }
 
     @CommandLine.Command(
-        name = "delete",
-        description = "Removes context. Destination: ~/.kafka/schema-registry.json")
+      name = "delete",
+      description = "Removes context. Destination: ~/.kafka/schema-registry.json"
+    )
     static class DeleteCommand implements Callable<Integer> {
 
       @CommandLine.Parameters(index = "0", description = "Context name. e.g. `local`")
@@ -456,8 +512,10 @@ public class Cli implements Callable<Integer> {
           SchemaRegistryContexts.save(contexts);
 
           out.printf(
-              "Schema Registry context `%s` with URL(s): [%s] is deleted.%n",
-              ctx.name(), ctx.cluster().urls());
+            "Schema Registry context `%s` with URL(s): [%s] is deleted.%n",
+            ctx.name(),
+            ctx.cluster().urls()
+          );
           return 0;
         } else {
           out.printf("Schema Registry Context %s is not registered.%n", name);
@@ -470,15 +528,17 @@ public class Cli implements Callable<Integer> {
   static class UsernamePasswordOptions {
 
     @CommandLine.Option(
-        names = {"--username", "-u"},
-        description = "Username authentication")
+      names = { "--username", "-u" },
+      description = "Username authentication"
+    )
     String username;
 
     @CommandLine.Option(
-        names = {"--password", "-p"},
-        description = "Password authentication",
-        arity = "0..1",
-        interactive = true)
+      names = { "--password", "-p" },
+      description = "Password authentication",
+      arity = "0..1",
+      interactive = true
+    )
     String password;
 
     public String password() {
@@ -494,16 +554,18 @@ public class Cli implements Callable<Integer> {
     @Override
     public String[] getVersion() throws IOException {
       final var url =
-          VersionProviderWithConfigProvider.class.getClassLoader().getResource("cli.properties");
+        VersionProviderWithConfigProvider.class.getClassLoader()
+          .getResource("cli.properties");
       if (url == null) {
-        return new String[] {
-          "No cli.properties file found in the classpath.",
-        };
+        return new String[] { "No cli.properties file found in the classpath." };
       }
       final var properties = new Properties();
       properties.load(url.openStream());
       return new String[] {
-        properties.getProperty("appName") + " version " + properties.getProperty("appVersion") + "",
+        properties.getProperty("appName") +
+        " version " +
+        properties.getProperty("appVersion") +
+        "",
         "Built: " + properties.getProperty("appBuildTime"),
       };
     }

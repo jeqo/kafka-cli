@@ -40,26 +40,34 @@ public class QuotaManager {
   }
 
   public Quotas allByUsers() {
-    final var conditions = List.of(ClientQuotaFilterComponent.ofEntityType(ClientQuotaEntity.USER));
+    final var conditions = List.of(
+      ClientQuotaFilterComponent.ofEntityType(ClientQuotaEntity.USER)
+    );
     final var filter = ClientQuotaFilter.contains(conditions);
     return query(filter);
   }
 
   public Quotas allByClients() {
-    final var conditions =
-        List.of(ClientQuotaFilterComponent.ofEntityType(ClientQuotaEntity.CLIENT_ID));
+    final var conditions = List.of(
+      ClientQuotaFilterComponent.ofEntityType(ClientQuotaEntity.CLIENT_ID)
+    );
     final var filter = ClientQuotaFilter.contains(conditions);
     return query(filter);
   }
 
   public Quotas allByIps() {
-    final var conditions = List.of(ClientQuotaFilterComponent.ofEntityType(ClientQuotaEntity.IP));
+    final var conditions = List.of(
+      ClientQuotaFilterComponent.ofEntityType(ClientQuotaEntity.IP)
+    );
     final var filter = ClientQuotaFilter.contains(conditions);
     return query(filter);
   }
 
   public Quotas byUsers(
-      Map<String, List<String>> users, boolean includeDefault, boolean onlyMatch) {
+    Map<String, List<String>> users,
+    boolean includeDefault,
+    boolean onlyMatch
+  ) {
     final var perEntity = Quotas.empty();
     final var defaults = Quotas.empty();
     for (final var user : users.keySet()) {
@@ -85,7 +93,11 @@ public class QuotaManager {
     return by(ClientQuotaEntity.USER, users, userDefault, onlyMatch);
   }
 
-  public Quotas byClients(List<String> clientIds, boolean clientIdDefault, boolean onlyMatch) {
+  public Quotas byClients(
+    List<String> clientIds,
+    boolean clientIdDefault,
+    boolean onlyMatch
+  ) {
     return by(ClientQuotaEntity.CLIENT_ID, clientIds, clientIdDefault, onlyMatch);
   }
 
@@ -94,9 +106,15 @@ public class QuotaManager {
   }
 
   public Quotas by(
-      String entityType, List<String> entities, boolean includeDefault, boolean onlyMatch) {
-    final var perEntity =
-        entities.stream().map(e -> onlyBy(entityType, e)).reduce(Quotas.empty(), Quotas::append);
+    String entityType,
+    List<String> entities,
+    boolean includeDefault,
+    boolean onlyMatch
+  ) {
+    final var perEntity = entities
+      .stream()
+      .map(e -> onlyBy(entityType, e))
+      .reduce(Quotas.empty(), Quotas::append);
     if (onlyMatch) {
       if (includeDefault) {
         return perEntity.append(fromDefault(entityType));
@@ -115,7 +133,9 @@ public class QuotaManager {
 
   Quotas fromUserClientDefault(String user) {
     final var byUser = ClientQuotaFilterComponent.ofEntity(ClientQuotaEntity.USER, user);
-    final var byClient = ClientQuotaFilterComponent.ofDefaultEntity(ClientQuotaEntity.CLIENT_ID);
+    final var byClient = ClientQuotaFilterComponent.ofDefaultEntity(
+      ClientQuotaEntity.CLIENT_ID
+    );
     final var filter = ClientQuotaFilter.containsOnly(List.of(byClient));
     return query(filter);
   }
@@ -128,7 +148,10 @@ public class QuotaManager {
 
   Quotas onlyByUserClient(String user, String client) {
     final var byUser = ClientQuotaFilterComponent.ofEntity(ClientQuotaEntity.USER, user);
-    final var byClient = ClientQuotaFilterComponent.ofEntity(ClientQuotaEntity.CLIENT_ID, client);
+    final var byClient = ClientQuotaFilterComponent.ofEntity(
+      ClientQuotaEntity.CLIENT_ID,
+      client
+    );
     final var filter = ClientQuotaFilter.containsOnly(List.of(byUser, byClient));
     return query(filter);
   }

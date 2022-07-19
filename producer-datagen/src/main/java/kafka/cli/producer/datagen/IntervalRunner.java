@@ -13,10 +13,11 @@ public class IntervalRunner {
   final Stats stats;
 
   public IntervalRunner(
-      Config config,
-      KafkaProducer<String, Object> producer,
-      PayloadGenerator payloadGenerator,
-      Stats stats) {
+    Config config,
+    KafkaProducer<String, Object> producer,
+    PayloadGenerator payloadGenerator,
+    Stats stats
+  ) {
     this.config = config;
     this.producer = producer;
     this.payloadGenerator = payloadGenerator;
