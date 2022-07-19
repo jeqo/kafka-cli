@@ -22,9 +22,9 @@ public class SampleCommand implements Callable<Integer> {
   boolean pretty;
 
   @CommandLine.Option(
-          names = {"--print-schema"},
-          defaultValue = "false",
-          description = "Print Avro Schema JSON")
+      names = {"--print-schema"},
+      defaultValue = "false",
+      description = "Print Avro Schema JSON")
   boolean schema;
 
   final ObjectMapper json = new ObjectMapper();

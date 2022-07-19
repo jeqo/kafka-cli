@@ -120,7 +120,7 @@ public class PayloadGenerator {
     return generator.schema().toString();
   }
 
-    public record Config(
+  public record Config(
       Optional<Long> randomSeed,
       Optional<Quickstart> quickstart,
       Optional<Path> schemaPath,
