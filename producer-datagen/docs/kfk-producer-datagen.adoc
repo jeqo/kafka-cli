@@ -1,9 +1,9 @@
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:revnumber: kafka-cli-producer-datagen version 0.2.3
+:revnumber: kafka-cli-producer-datagen version 0.2.4
 :manmanual: Kfk-producer-datagen Manual
-:mansource: kafka-cli-producer-datagen version 0.2.3
+:mansource: kafka-cli-producer-datagen version 0.2.4
 :man-linkstyle: pass:[blue R < >]
 = kfk-producer-datagen(1)
 

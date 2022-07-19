@@ -19,7 +19,8 @@ kfk-producer-datagen-sample - Get a sample of the quickstart
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*kfk-producer-datagen sample* [*--pretty*] (*-q*=_<quickstart>_ | *-s*=_<schemaPath>_)
+*kfk-producer-datagen sample* [*--pretty*] [*--print-schema*] (*-q*=_<quickstart>_ |
+                            *-s*=_<schemaPath>_)
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -35,6 +36,9 @@ Get a sample of the quickstart
 
 *--pretty*::
   Print pretty/formatted JSON
+
+*--print-schema*::
+  Print Avro Schema JSON
 
 *-q*, *--quickstart*=_<quickstart>_::
   Quickstart name. Valid values:  CLICKSTREAM_CODES, CLICKSTREAM, CLICKSTREAM_USERS, ORDERS, RATINGS, USERS, USERS_, PAGEVIEWS, STOCK_TRADES, INVENTORY, PRODUCT, PURCHASES, TRANSACTIONS, STORES, CREDIT_CARDS

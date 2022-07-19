@@ -19,7 +19,7 @@ kfk-producer-datagen-interval - run producer with interval
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*kfk-producer-datagen interval* [*-f*=_<format>_] [*-i*=_<interval>_] *-n*=_<numRecords>_
+*kfk-producer-datagen interval* [*-f*=_<format>_] [*-i*=_<intervalMs>_] *-n*=_<numRecords>_
                               *-t*=_<topicName>_ [*-p*=_<String=String>_]...
                               (*-c*=_<configPath>_ | [*--kafka*=_<kafkaContextName>_
                               [*--sr*=_<srContextName>_]]) (*-q*=_<quickstart>_ |
@@ -43,7 +43,7 @@ run producer with interval
 *-f*, *--format*=_<format>_::
   Record value format
 
-*-i*, *--interval*=_<interval>_::
+*-i*, *--interval*=_<intervalMs>_::
   Maximum interval between producer send
 
 *--kafka*=_<kafkaContextName>_::
