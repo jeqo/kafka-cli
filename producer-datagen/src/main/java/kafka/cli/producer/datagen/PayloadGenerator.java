@@ -116,16 +116,16 @@ public class PayloadGenerator {
     return String.valueOf(payload.get(keyFieldName));
   }
 
-  public record Config(
+  public String schema() {
+    return generator.schema().toString();
+  }
+
+    public record Config(
       Optional<Long> randomSeed,
       Optional<Quickstart> quickstart,
       Optional<Path> schemaPath,
       long count,
       Format format) {
-
-    public static Config create(Quickstart quickstart, long count, Format format) {
-      return new Config(Optional.empty(), Optional.of(quickstart), Optional.empty(), count, format);
-    }
 
     Schema schema() {
       return quickstart

@@ -21,6 +21,12 @@ public class SampleCommand implements Callable<Integer> {
       description = "Print pretty/formatted JSON")
   boolean pretty;
 
+  @CommandLine.Option(
+          names = {"--print-schema"},
+          defaultValue = "false",
+          description = "Print Avro Schema JSON")
+  boolean schema;
+
   final ObjectMapper json = new ObjectMapper();
 
   @Override
@@ -33,7 +39,15 @@ public class SampleCommand implements Callable<Integer> {
                 schemaSource.schemaPath,
                 1,
                 PayloadGenerator.Format.JSON));
-
+    if (schema) {
+      final var schema = json.readTree(payloadGenerator.schema());
+      if (pretty) {
+        out.println(json.writerWithDefaultPrettyPrinter().writeValueAsString(schema));
+      } else {
+        out.println(json.writeValueAsString(schema));
+      }
+      return 0;
+    }
     final var sample = json.readTree(payloadGenerator.sample());
     if (pretty) {
       out.println(json.writerWithDefaultPrettyPrinter().writeValueAsString(sample));

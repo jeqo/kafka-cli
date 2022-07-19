@@ -53,6 +53,9 @@ public class ProduceOnceCommand implements Callable<Integer> {
               new PayloadGenerator.Config(
                   Optional.empty(), schemaSource.quickstart, schemaSource.schemaPath, 10, format));
 
+      out.println("Avro Schema used to generate records:");
+      out.println(pg.schema());
+
       var meta = producer.send(pg.record(topicName)).get();
       out.println("Record sent. " + meta);
     }

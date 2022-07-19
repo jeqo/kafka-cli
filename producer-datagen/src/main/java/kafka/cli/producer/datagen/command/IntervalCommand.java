@@ -1,5 +1,7 @@
 package kafka.cli.producer.datagen.command;
 
+import static java.lang.System.out;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -73,6 +75,10 @@ public class IntervalCommand implements Callable<Integer> {
                   format));
       final var stats = new Stats(numRecords, reportingIntervalMs);
       final var config = new IntervalRunner.Config(topicName, numRecords, intervalMs);
+
+      out.println("Avro Schema used to generate records:");
+      out.println(payloadGenerator.schema());
+
       var pp = new IntervalRunner(config, producer, payloadGenerator, stats);
       pp.start();
     }

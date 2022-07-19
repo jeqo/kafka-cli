@@ -1,5 +1,7 @@
 package kafka.cli.producer.datagen.command;
 
+import static java.lang.System.out;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -81,6 +83,9 @@ public class PerfCommand implements Callable<Integer> {
       final var throughputThrottler =
           new ThroughputThrottler(System.currentTimeMillis(), throughput);
       final var stats = new Stats(numRecords, reportingIntervalMs);
+
+      out.println("Avro Schema used to generate records:");
+      out.println(payloadGenerator.schema());
 
       var pp =
           new PerformanceRunner(config, producer, payloadGenerator, throughputThrottler, stats);
