@@ -31,12 +31,14 @@
         <picocli.version>4.6.3</picocli.version>
         <kafka.version>3.1.0</kafka.version>
         <confluent.version>7.0.1</confluent.version>
-        <kafka-context.version>0.3.0</kafka-context.version>
+        <kafka-context.version>0.3.1-SNAPSHOT</kafka-context.version>
         <jackson.version>2.13.3</jackson.version>
         <slf4j.version>1.7.36</slf4j.version>
         <junit.version>5.8.2</junit.version>
 
         <jreleaser.git.root.search>true</jreleaser.git.root.search>
+
+        <prettier-java.goal>write</prettier-java.goal>
 
         <app.name>${project.artifactId}</app.name>
         <app.version>${project.version}</app.version>
@@ -293,7 +295,7 @@
                     <execution>
                         <phase>validate</phase>
                         <goals>
-                            <goal>check</goal>
+                            <goal>${prettier-java.goal}</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -580,6 +582,12 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>ci</id>
+            <properties>
+                <prettier-java.goal>check</prettier-java.goal>
+            </properties>
         </profile>
     </profiles>
 

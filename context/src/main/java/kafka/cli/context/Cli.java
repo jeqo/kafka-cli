@@ -71,7 +71,7 @@ public class Cli implements Callable<Integer> {
   public Integer call() throws Exception {
     final var contexts = KafkaContexts.load();
     if (verbose) {
-      out.println(contexts.namesAndBootstrapServers());
+      out.println(contexts.printNamesAndAddresses());
     } else {
       out.println(contexts.names());
     }
@@ -121,7 +121,7 @@ public class Cli implements Callable<Integer> {
         final var ctx = new KafkaContext(name, new KafkaCluster(bootstrapServers, auth));
 
         contexts.add(ctx);
-        KafkaContexts.save(contexts);
+        contexts.save();
 
         out.printf(
           "Kafka context `%s` with bootstrap-servers [%s] is saved.",
@@ -152,7 +152,7 @@ public class Cli implements Callable<Integer> {
       if (contexts.has(name)) {
         final var ctx = contexts.get(name);
         contexts.remove(name);
-        KafkaContexts.save(contexts);
+        contexts.save();
 
         out.printf(
           "Kafka context `%s` with bootstrap servers: [%s] is deleted.%n",
@@ -426,7 +426,7 @@ public class Cli implements Callable<Integer> {
     public Integer call() throws Exception {
       var contexts = SchemaRegistryContexts.load();
       if (verbose) {
-        out.println(contexts.namesAndUrls());
+        out.println(contexts.printNamesAndAddresses());
       } else {
         out.println(contexts.names());
       }
@@ -478,7 +478,7 @@ public class Cli implements Callable<Integer> {
           );
 
           contexts.add(ctx);
-          SchemaRegistryContexts.save(contexts);
+          contexts.save();
 
           out.printf(
             "Schema Registry context `%s` with URL(s): [%s] is saved.",
@@ -509,7 +509,7 @@ public class Cli implements Callable<Integer> {
         if (contexts.has(name)) {
           final var ctx = contexts.get(name);
           contexts.remove(name);
-          SchemaRegistryContexts.save(contexts);
+          contexts.save();
 
           out.printf(
             "Schema Registry context `%s` with URL(s): [%s] is deleted.%n",

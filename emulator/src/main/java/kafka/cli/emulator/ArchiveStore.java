@@ -1,4 +1,4 @@
-package kafka.emulator;
+package kafka.cli.emulator;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;

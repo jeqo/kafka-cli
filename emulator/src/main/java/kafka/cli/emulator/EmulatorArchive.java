@@ -1,4 +1,4 @@
-package kafka.emulator;
+package kafka.cli.emulator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
 
@@ -14,6 +15,9 @@ public class EmulatorArchive {
   private final Map<TopicPartition, List<EmulatorRecord>> records = new HashMap<>();
   private final Map<TopicPartition, Long> oldestOffsets = new HashMap<>();
   private final Map<TopicPartition, Long> oldestTimestamps = new HashMap<>();
+
+  List<String> includeTopics = new ArrayList<>();
+  List<String> excludeTopics = new ArrayList<>();
 
   public static EmulatorArchive create() {
     return new EmulatorArchive();
@@ -51,13 +55,30 @@ public class EmulatorArchive {
     );
   }
 
+  public void setExcludeTopics(List<String> excludeTopics) {
+    this.excludeTopics = excludeTopics;
+  }
+
+  public void setIncludeTopics(List<String> includeTopics) {
+    this.includeTopics = includeTopics;
+  }
+
   public Set<TopicPartition> topicPartitions() {
-    return records.keySet();
+    return records
+      .keySet()
+      .stream()
+      .filter(topicPartition ->
+        includeTopics.isEmpty() || includeTopics.contains(topicPartition.topic())
+      )
+      .filter(topicPartition ->
+        excludeTopics.isEmpty() || !excludeTopics.contains(topicPartition.topic())
+      )
+      .collect(Collectors.toSet());
   }
 
   public Map<String, Integer> topicPartitionNumber() {
     final var map = new HashMap<String, Integer>();
-    for (var tp : records.keySet()) {
+    for (var tp : topicPartitions()) {
       final var partitions = tp.partition() + 1;
       map.computeIfPresent(tp.topic(), (t, p) -> partitions > p ? partitions : p);
       map.putIfAbsent(tp.topic(), partitions);
