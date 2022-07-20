@@ -31,7 +31,7 @@
         <picocli.version>4.6.3</picocli.version>
         <kafka.version>3.1.0</kafka.version>
         <confluent.version>7.0.1</confluent.version>
-        <kafka-context.version>0.3.1-SNAPSHOT</kafka-context.version>
+        <kafka-context.version>0.4.0</kafka-context.version>
         <jackson.version>2.13.3</jackson.version>
         <slf4j.version>1.7.36</slf4j.version>
         <junit.version>5.8.2</junit.version>

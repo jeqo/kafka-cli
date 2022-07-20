@@ -1,4 +1,4 @@
-# Kafka Zip
+# Kafka Emulator
 
 A file format that represents set of records in kafka
 

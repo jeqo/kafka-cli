@@ -10,6 +10,7 @@ This module includes some experimental CLIs for Apache Kafka.
 - [Context](./context)
 - [Quotas](./quotas)
 
-### Producer
+### Tools
 
 - [Producer DataGen](./producer-datagen)
+- [Emulator](./emulator)
