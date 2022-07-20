@@ -23,18 +23,19 @@ import picocli.CommandLine.IVersionProvider;
 import picocli.CommandLine.Option;
 
 @CommandLine.Command(
-    name = "kfk-producer-datagen",
-    versionProvider = VersionProviderWithConfigProvider.class,
-    mixinStandardHelpOptions = true,
-    descriptionHeading = "Kafka CLI - Producer Datagen",
-    description = "Kafka Producer with Data generation",
-    subcommands = {
-      PerfCommand.class,
-      IntervalCommand.class,
-      ProduceOnceCommand.class,
-      SampleCommand.class,
-      ListTopicsCommand.class,
-    })
+  name = "kfk-producer-datagen",
+  versionProvider = VersionProviderWithConfigProvider.class,
+  mixinStandardHelpOptions = true,
+  descriptionHeading = "Kafka CLI - Producer Datagen",
+  description = "Kafka Producer with Data generation",
+  subcommands = {
+    PerfCommand.class,
+    IntervalCommand.class,
+    ProduceOnceCommand.class,
+    SampleCommand.class,
+    ListTopicsCommand.class,
+  }
+)
 public class Cli implements Callable<Integer> {
 
   public static void main(String[] args) {
@@ -51,10 +52,10 @@ public class Cli implements Callable<Integer> {
   public static class PropertiesOption {
 
     @CommandLine.Option(
-        names = {"-c", "--config"},
-        description =
-            "Client configuration properties file."
-                + "Must include connection to Kafka and Schema Registry")
+      names = { "-c", "--config" },
+      description = "Client configuration properties file." +
+      "Must include connection to Kafka and Schema Registry"
+    )
     Optional<Path> configPath;
 
     @ArgGroup(exclusive = false)
@@ -62,25 +63,24 @@ public class Cli implements Callable<Integer> {
 
     public Properties load() {
       return configPath
-          .map(
-              path -> {
-                try {
-                  final var p = new Properties();
-                  p.load(Files.newInputStream(path));
-                  return p;
-                } catch (Exception e) {
-                  throw new IllegalArgumentException(
-                      "ERROR: properties file at %s is failing to load".formatted(path));
-                }
-              })
-          .orElseGet(
-              () -> {
-                try {
-                  return contextOption.load();
-                } catch (IOException e) {
-                  throw new IllegalArgumentException("ERROR: loading contexts");
-                }
-              });
+        .map(path -> {
+          try {
+            final var p = new Properties();
+            p.load(Files.newInputStream(path));
+            return p;
+          } catch (Exception e) {
+            throw new IllegalArgumentException(
+              "ERROR: properties file at %s is failing to load".formatted(path)
+            );
+          }
+        })
+        .orElseGet(() -> {
+          try {
+            return contextOption.load();
+          } catch (IOException e) {
+            throw new IllegalArgumentException("ERROR: loading contexts");
+          }
+        });
     }
   }
 
@@ -109,15 +109,18 @@ public class Cli implements Callable<Integer> {
             props.putAll(srProps);
           } else {
             err.printf(
-                "WARN: Schema Registry context `%s` not found. Proceeding without it.%n", srName);
+              "WARN: Schema Registry context `%s` not found. Proceeding without it.%n",
+              srName
+            );
           }
         }
 
         return props;
       } else {
         err.printf(
-            "ERROR: Kafka context `%s` not found. Check that context already exist.%n",
-            kafkaContextName);
+          "ERROR: Kafka context `%s` not found. Check that context already exist.%n",
+          kafkaContextName
+        );
         return null;
       }
     }
@@ -126,13 +129,15 @@ public class Cli implements Callable<Integer> {
   public static class SchemaSourceOption {
 
     @Option(
-        names = {"-q", "--quickstart"},
-        description = "Quickstart name. Valid values:  ${COMPLETION-CANDIDATES}")
+      names = { "-q", "--quickstart" },
+      description = "Quickstart name. Valid values:  ${COMPLETION-CANDIDATES}"
+    )
     public Optional<PayloadGenerator.Quickstart> quickstart;
 
     @Option(
-        names = {"-s", "--schema"},
-        description = "Path to Avro schema to use for generating records.")
+      names = { "-s", "--schema" },
+      description = "Path to Avro schema to use for generating records."
+    )
     public Optional<Path> schemaPath;
   }
 
@@ -141,16 +146,18 @@ public class Cli implements Callable<Integer> {
     @Override
     public String[] getVersion() throws IOException {
       final var url =
-          VersionProviderWithConfigProvider.class.getClassLoader().getResource("cli.properties");
+        VersionProviderWithConfigProvider.class.getClassLoader()
+          .getResource("cli.properties");
       if (url == null) {
-        return new String[] {
-          "No cli.properties file found in the classpath.",
-        };
+        return new String[] { "No cli.properties file found in the classpath." };
       }
       final var properties = new Properties();
       properties.load(url.openStream());
       return new String[] {
-        properties.getProperty("appName") + " version " + properties.getProperty("appVersion") + "",
+        properties.getProperty("appName") +
+        " version " +
+        properties.getProperty("appVersion") +
+        "",
         "Built: " + properties.getProperty("appBuildTime"),
       };
     }

@@ -37,19 +37,18 @@ public class PayloadGenerator {
     this.format = config.format();
     this.random = new Random();
     config
-        .randomSeed()
-        .ifPresent(
-            r -> {
-              random.setSeed(r);
-              random.setSeed(random.nextLong());
-            });
+      .randomSeed()
+      .ifPresent(r -> {
+        random.setSeed(r);
+        random.setSeed(random.nextLong());
+      });
 
     this.generator =
-        new Generator.Builder()
-            .random(random)
-            .generation(config.count())
-            .schema(config.schema())
-            .build();
+      new Generator.Builder()
+        .random(random)
+        .generation(config.count())
+        .schema(config.schema())
+        .build();
     this.keyFieldName = config.keyFieldName();
   }
 
@@ -57,9 +56,11 @@ public class PayloadGenerator {
     final Object generatedObject = generator.generate();
     if (!(generatedObject instanceof GenericRecord)) {
       throw new RuntimeException(
-          String.format(
-              "Expected Avro Random Generator to return instance of GenericRecord, found %s instead",
-              generatedObject.getClass().getName()));
+        String.format(
+          "Expected Avro Random Generator to return instance of GenericRecord, found %s instead",
+          generatedObject.getClass().getName()
+        )
+      );
     }
     return (GenericRecord) generatedObject;
   }
@@ -81,7 +82,9 @@ public class PayloadGenerator {
       final var outputStream = new ByteArrayOutputStream();
       final var schema = record.getSchema();
       final var datumWriter = new GenericDatumWriter<GenericRecord>(schema);
-      final var encoder = EncoderFactory.get().jsonEncoder(record.getSchema(), outputStream);
+      final var encoder = EncoderFactory
+        .get()
+        .jsonEncoder(record.getSchema(), outputStream);
       datumWriter.write(record, encoder);
       encoder.flush();
       return outputStream.toString();
@@ -121,30 +124,30 @@ public class PayloadGenerator {
   }
 
   public record Config(
-      Optional<Long> randomSeed,
-      Optional<Quickstart> quickstart,
-      Optional<Path> schemaPath,
-      long count,
-      Format format) {
-
+    Optional<Long> randomSeed,
+    Optional<Quickstart> quickstart,
+    Optional<Path> schemaPath,
+    long count,
+    Format format
+  ) {
     Schema schema() {
       return quickstart
-          .map(Quickstart::getSchemaFilename)
-          .map(Config::getSchemaFromSchemaFileName)
-          .orElse(
-              schemaPath
-                  .map(
-                      s -> {
-                        Schema schemaFromSchemaFileName = null;
-                        try {
-                          schemaFromSchemaFileName =
-                              getSchemaFromSchemaFileName(Files.newInputStream(schemaPath.get()));
-                        } catch (IOException e) {
-                          e.printStackTrace();
-                        }
-                        return schemaFromSchemaFileName;
-                      })
-                  .orElse(null));
+        .map(Quickstart::getSchemaFilename)
+        .map(Config::getSchemaFromSchemaFileName)
+        .orElse(
+          schemaPath
+            .map(s -> {
+              Schema schemaFromSchemaFileName = null;
+              try {
+                schemaFromSchemaFileName =
+                  getSchemaFromSchemaFileName(Files.newInputStream(schemaPath.get()));
+              } catch (IOException e) {
+                e.printStackTrace();
+              }
+              return schemaFromSchemaFileName;
+            })
+            .orElse(null)
+        );
     }
 
     public static Schema getSchemaFromSchemaFileName(InputStream stream) {
@@ -174,14 +177,20 @@ public class PayloadGenerator {
     AVRO,
   }
 
-  public static Serializer<Object> valueSerializer(Format format, Properties producerConfig) {
+  public static Serializer<Object> valueSerializer(
+    Format format,
+    Properties producerConfig
+  ) {
     Serializer<Object> valueSerializer;
     if (format.equals(Format.AVRO)) {
       valueSerializer = new KafkaAvroSerializer();
       valueSerializer.configure(
-          producerConfig.keySet().stream()
-              .collect(Collectors.toMap(String::valueOf, producerConfig::get)),
-          false);
+        producerConfig
+          .keySet()
+          .stream()
+          .collect(Collectors.toMap(String::valueOf, producerConfig::get)),
+        false
+      );
     } else {
       valueSerializer = (Serializer) new StringSerializer();
     }

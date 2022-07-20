@@ -20,11 +20,12 @@ public class PerformanceRunner {
   final Stats stats;
 
   public PerformanceRunner(
-      final Config config,
-      final KafkaProducer<String, Object> producer,
-      final PayloadGenerator payloadGenerator,
-      final ThroughputThrottler throughputThrottler,
-      final Stats stats) {
+    final Config config,
+    final KafkaProducer<String, Object> producer,
+    final PayloadGenerator payloadGenerator,
+    final ThroughputThrottler throughputThrottler,
+    final Stats stats
+  ) {
     this.config = config;
     this.producer = producer;
     this.payloadGenerator = payloadGenerator;
@@ -65,8 +66,10 @@ public class PerformanceRunner {
       producer.send(record, cb);
 
       currentTransactionSize++;
-      if (config.transactionsEnabled()
-          && config.transactionDurationMs() <= (sendStartMs - transactionStartTime)) {
+      if (
+        config.transactionsEnabled() &&
+        config.transactionDurationMs() <= (sendStartMs - transactionStartTime)
+      ) {
         producer.commitTransaction();
         currentTransactionSize = 0;
       }
@@ -76,10 +79,11 @@ public class PerformanceRunner {
       }
     }
 
-    if (config.transactionsEnabled() && currentTransactionSize != 0) producer.commitTransaction();
+    if (
+      config.transactionsEnabled() && currentTransactionSize != 0
+    ) producer.commitTransaction();
 
     if (!config.shouldPrintMetrics()) {
-
       /* print final results */
       stats.printTotal();
     } else {
@@ -114,23 +118,28 @@ public class PerformanceRunner {
       }
       String doubleOutputFormat = "%-" + maxLengthOfDisplayName + "s : %.3f";
       String defaultOutputFormat = "%-" + maxLengthOfDisplayName + "s : %s";
-      System.out.printf("\n%-" + maxLengthOfDisplayName + "s   %s%n", "Metric Name", "Value");
+      System.out.printf(
+        "\n%-" + maxLengthOfDisplayName + "s   %s%n",
+        "Metric Name",
+        "Value"
+      );
 
       for (Map.Entry<String, Object> entry : sortedMetrics.entrySet()) {
         String outputFormat;
-        if (entry.getValue() instanceof Double) outputFormat = doubleOutputFormat;
-        else outputFormat = defaultOutputFormat;
+        if (entry.getValue() instanceof Double) outputFormat =
+          doubleOutputFormat; else outputFormat = defaultOutputFormat;
         System.out.printf((outputFormat) + "%n", entry.getKey(), entry.getValue());
       }
     }
   }
 
   public record Config(
-      long records,
-      String topicName,
-      boolean transactionsEnabled,
-      long transactionDurationMs,
-      boolean shouldPrintMetrics) {
+    long records,
+    String topicName,
+    boolean transactionsEnabled,
+    long transactionDurationMs,
+    boolean shouldPrintMetrics
+  ) {
     static Config create(long records, String topicName) {
       return new Config(records, topicName, false, -1L, false);
     }
@@ -140,8 +149,18 @@ public class PerformanceRunner {
     }
 
     static Config create(
-        long records, String topicName, long transactionDuration, boolean shouldPrintMetrics) {
-      return new Config(records, topicName, true, transactionDuration, shouldPrintMetrics);
+      long records,
+      String topicName,
+      long transactionDuration,
+      boolean shouldPrintMetrics
+    ) {
+      return new Config(
+        records,
+        topicName,
+        true,
+        transactionDuration,
+        shouldPrintMetrics
+      );
     }
 
     static Config create(long records, String topicName, long transactionDuration) {

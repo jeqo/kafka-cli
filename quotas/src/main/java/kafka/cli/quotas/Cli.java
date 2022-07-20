@@ -32,11 +32,12 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(
-    name = "kfk-quotas",
-    versionProvider = Cli.VersionProviderWithConfigProvider.class,
-    mixinStandardHelpOptions = true,
-    description = "CLI to manage Manage Kafka Quotas",
-    subcommands = {QueryCommand.class, CreateCommand.class, DeleteCommand.class})
+  name = "kfk-quotas",
+  versionProvider = Cli.VersionProviderWithConfigProvider.class,
+  mixinStandardHelpOptions = true,
+  description = "CLI to manage Manage Kafka Quotas",
+  subcommands = { QueryCommand.class, CreateCommand.class, DeleteCommand.class }
+)
 public class Cli implements Callable<Integer> {
 
   public static void main(String[] args) {
@@ -51,60 +52,57 @@ public class Cli implements Callable<Integer> {
   }
 
   @Command(
-      name = "query",
-      description =
-          """
+    name = "query",
+    description = """
             Search for existing quotas or quotas applying to a certain client application
-            """)
+            """
+  )
   static class QueryCommand implements Callable<Integer> {
 
     @ArgGroup(multiplicity = "1")
     PropertiesOption propertiesOption;
 
-    @Option(
-        names = {"--all-users"},
-        description = "Get all quotas related to users")
+    @Option(names = { "--all-users" }, description = "Get all quotas related to users")
     boolean allUsers;
 
     @Option(
-        names = {"--all-clients"},
-        description = "Get all quotas related to clients")
+      names = { "--all-clients" },
+      description = "Get all quotas related to clients"
+    )
     boolean allClients;
 
-    @Option(
-        names = {"--all-ips"},
-        description = "Get all quotas related to IPs")
+    @Option(names = { "--all-ips" }, description = "Get all quotas related to IPs")
     boolean allIps;
 
-    @Option(names = {"--user-clients"})
+    @Option(names = { "--user-clients" })
     Map<String, String> userClients = new HashMap<>();
 
-    @Option(names = {"--user"})
+    @Option(names = { "--user" })
     List<String> users = new ArrayList<>();
 
-    @Option(names = {"--user-default"})
+    @Option(names = { "--user-default" })
     boolean userDefault;
 
-    @Option(names = {"--client"})
+    @Option(names = { "--client" })
     List<String> clientIds = new ArrayList<>();
 
-    @Option(names = {"--client-default"})
+    @Option(names = { "--client-default" })
     boolean clientIdDefault;
 
-    @Option(names = {"--ip"})
+    @Option(names = { "--ip" })
     List<String> ips = new ArrayList<>();
 
-    @Option(names = {"--ip-default"})
+    @Option(names = { "--ip-default" })
     boolean ipDefault;
 
     @Option(
-        names = {"--only", "-o"},
-        description =
-            """
+      names = { "--only", "-o" },
+      description = """
             Look only for quotas matching User, Client IDs, or IPs.
             If set to false (default), returns quotas even if not explicitly matching filters, e.g. defaults.
             If set to true, will return only the quotas matching the filters.
-            """)
+            """
+    )
     boolean onlyMatch;
 
     @Override
@@ -122,18 +120,28 @@ public class Cli implements Callable<Integer> {
         } else if (allIps) {
           final var quotas = quotaManager.allByIps();
           System.out.println(quotas.toJson());
-        } else // start querying by params // end of all by *
-        if (!userClients.isEmpty()) {
-          final var userClientMap =
-              userClients.keySet().stream()
-                  .collect(Collectors.toMap(k -> k, k -> List.of(userClients.get(k).split(","))));
-          final var quotas = quotaManager.byUsers(userClientMap, clientIdDefault, onlyMatch);
+        } else if (!userClients.isEmpty()) { // start querying by params // end of all by *
+          final var userClientMap = userClients
+            .keySet()
+            .stream()
+            .collect(
+              Collectors.toMap(k -> k, k -> List.of(userClients.get(k).split(",")))
+            );
+          final var quotas = quotaManager.byUsers(
+            userClientMap,
+            clientIdDefault,
+            onlyMatch
+          );
           System.out.println(quotas.toJson());
         } else if (userDefault || !users.isEmpty()) {
           final var quotas = quotaManager.byUsers(users, userDefault, onlyMatch);
           System.out.println(quotas.toJson());
         } else if (clientIdDefault || !clientIds.isEmpty()) {
-          final var quotas = quotaManager.byClients(clientIds, clientIdDefault, onlyMatch);
+          final var quotas = quotaManager.byClients(
+            clientIds,
+            clientIdDefault,
+            onlyMatch
+          );
           System.out.println(quotas.toJson());
         } else if (ipDefault || !ips.isEmpty()) {
           final var quotas = quotaManager.byIps(ips, ipDefault, onlyMatch);
@@ -153,54 +161,34 @@ public class Cli implements Callable<Integer> {
     @ArgGroup(multiplicity = "1")
     PropertiesOption propertiesOption;
 
-    @Option(
-        names = {"--user-default"},
-        description = "Default to all users")
+    @Option(names = { "--user-default" }, description = "Default to all users")
     boolean userDefault;
 
-    @Option(
-        names = {"--user"},
-        description = "Application's User Principal")
+    @Option(names = { "--user" }, description = "Application's User Principal")
     Optional<String> user;
 
-    @Option(
-        names = {"--client-default"},
-        description = "Default to all client IDs")
+    @Option(names = { "--client-default" }, description = "Default to all client IDs")
     boolean clientIdDefault;
 
-    @Option(
-        names = {"--client"},
-        description = "Application's Client ID")
+    @Option(names = { "--client" }, description = "Application's Client ID")
     Optional<String> clientId;
 
-    @Option(
-        names = {"--ip-default"},
-        description = "Default to all IPs")
+    @Option(names = { "--ip-default" }, description = "Default to all IPs")
     boolean ipDefault;
 
-    @Option(
-        names = {"--ip"},
-        description = "Application's IP")
+    @Option(names = { "--ip" }, description = "Application's IP")
     Optional<String> ip;
 
-    @Option(
-        names = {"--produce-rate"},
-        description = "Write bandwidth")
+    @Option(names = { "--produce-rate" }, description = "Write bandwidth")
     Optional<Double> writeBandwidth;
 
-    @Option(
-        names = {"--fetch-rate"},
-        description = "Read bandwidth")
+    @Option(names = { "--fetch-rate" }, description = "Read bandwidth")
     Optional<Double> readBandwidth;
 
-    @Option(
-        names = {"--request-rate"},
-        description = "Request rate")
+    @Option(names = { "--request-rate" }, description = "Request rate")
     Optional<Double> requestRate;
 
-    @Option(
-        names = {"--connection-rate"},
-        description = "Connection creation rate")
+    @Option(names = { "--connection-rate" }, description = "Connection creation rate")
     Optional<Double> connectionRate;
 
     @Override
@@ -208,17 +196,19 @@ public class Cli implements Callable<Integer> {
       final var props = propertiesOption.load();
       try (final var kafkaAdmin = AdminClient.create(props)) {
         final var quotaManager = new QuotaManager(kafkaAdmin);
-        final var quota =
-            new Quota(
-                new ClientEntity(
-                    new KafkaClientEntity(userDefault, user),
-                    new KafkaClientEntity(clientIdDefault, clientId),
-                    new KafkaClientEntity(ipDefault, ip)),
-                new Constraint(
-                    writeBandwidth.map(NetworkBandwidth::new),
-                    readBandwidth.map(NetworkBandwidth::new),
-                    requestRate.map(RequestRate::new),
-                    connectionRate.map(ConnectionCreationRate::new)));
+        final var quota = new Quota(
+          new ClientEntity(
+            new KafkaClientEntity(userDefault, user),
+            new KafkaClientEntity(clientIdDefault, clientId),
+            new KafkaClientEntity(ipDefault, ip)
+          ),
+          new Constraint(
+            writeBandwidth.map(NetworkBandwidth::new),
+            readBandwidth.map(NetworkBandwidth::new),
+            requestRate.map(RequestRate::new),
+            connectionRate.map(ConnectionCreationRate::new)
+          )
+        );
         quotaManager.create(quota);
         return 0;
       }
@@ -231,59 +221,40 @@ public class Cli implements Callable<Integer> {
     @ArgGroup(multiplicity = "1")
     PropertiesOption propertiesOption;
 
-    @Option(
-        names = {"--user-default"},
-        description = "Default to all users")
+    @Option(names = { "--user-default" }, description = "Default to all users")
     boolean userDefault;
 
-    @Option(
-        names = {"--user"},
-        description = "Application's User Principal")
+    @Option(names = { "--user" }, description = "Application's User Principal")
     Optional<String> user;
 
-    @Option(
-        names = {"--client-default"},
-        description = "Default to all client IDs")
+    @Option(names = { "--client-default" }, description = "Default to all client IDs")
     boolean clientIdDefault;
 
-    @Option(
-        names = {"--client"},
-        description = "Application's Client ID")
+    @Option(names = { "--client" }, description = "Application's Client ID")
     Optional<String> clientId;
 
-    @Option(
-        names = {"--ip-default"},
-        description = "Default to all IPs")
+    @Option(names = { "--ip-default" }, description = "Default to all IPs")
     boolean ipDefault;
 
-    @Option(
-        names = {"--ip"},
-        description = "Application's IP")
+    @Option(names = { "--ip" }, description = "Application's IP")
     Optional<String> ip;
 
     @Option(
-        names = {"--all"},
-        description = "Use to remove all existing quotas for an application")
+      names = { "--all" },
+      description = "Use to remove all existing quotas for an application"
+    )
     boolean all;
 
-    @Option(
-        names = {"--produce-rate"},
-        description = "Write bandwidth")
+    @Option(names = { "--produce-rate" }, description = "Write bandwidth")
     boolean writeBandwidth;
 
-    @Option(
-        names = {"--fetch-rate"},
-        description = "Read bandwidth")
+    @Option(names = { "--fetch-rate" }, description = "Read bandwidth")
     boolean readBandwidth;
 
-    @Option(
-        names = {"--request-rate"},
-        description = "Request rate")
+    @Option(names = { "--request-rate" }, description = "Request rate")
     boolean requestRate;
 
-    @Option(
-        names = {"--connection-rate"},
-        description = "Connection creation rate")
+    @Option(names = { "--connection-rate" }, description = "Connection creation rate")
     boolean connectionRate;
 
     @Override
@@ -293,36 +264,46 @@ public class Cli implements Callable<Integer> {
         final var quotaManager = new QuotaManager(kafkaAdmin);
         if (all) {
           if (userDefault || user.isPresent()) {
-            final var quotas =
-                quotaManager.byUsers(user.map(List::of).orElse(List.of()), userDefault, true);
+            final var quotas = quotaManager.byUsers(
+              user.map(List::of).orElse(List.of()),
+              userDefault,
+              true
+            );
             System.out.println(quotas.toJson());
             quotaManager.delete(quotas);
           } else if (clientIdDefault || clientId.isPresent()) {
-            final var quotas =
-                quotaManager.byClients(
-                    clientId.map(List::of).orElse(List.of()), clientIdDefault, true);
+            final var quotas = quotaManager.byClients(
+              clientId.map(List::of).orElse(List.of()),
+              clientIdDefault,
+              true
+            );
             System.out.println(quotas.toJson());
             quotaManager.delete(quotas);
           } else if (ipDefault || ip.isPresent()) {
-            final var quotas =
-                quotaManager.byIps(ip.map(List::of).orElse(List.of()), ipDefault, true);
+            final var quotas = quotaManager.byIps(
+              ip.map(List::of).orElse(List.of()),
+              ipDefault,
+              true
+            );
             System.out.println(quotas.toJson());
             quotaManager.delete(quotas);
           }
         } else {
-          final var quota =
-              new Quota(
-                  new ClientEntity(
-                      new KafkaClientEntity(userDefault, user),
-                      new KafkaClientEntity(clientIdDefault, clientId),
-                      new KafkaClientEntity(ipDefault, ip)),
-                  new Constraint(
-                      writeBandwidth ? Optional.of(NetworkBandwidth.empty()) : Optional.empty(),
-                      readBandwidth ? Optional.of(NetworkBandwidth.empty()) : Optional.empty(),
-                      requestRate ? Optional.of(RequestRate.empty()) : Optional.empty(),
-                      connectionRate
-                          ? Optional.of(ConnectionCreationRate.empty())
-                          : Optional.empty()));
+          final var quota = new Quota(
+            new ClientEntity(
+              new KafkaClientEntity(userDefault, user),
+              new KafkaClientEntity(clientIdDefault, clientId),
+              new KafkaClientEntity(ipDefault, ip)
+            ),
+            new Constraint(
+              writeBandwidth ? Optional.of(NetworkBandwidth.empty()) : Optional.empty(),
+              readBandwidth ? Optional.of(NetworkBandwidth.empty()) : Optional.empty(),
+              requestRate ? Optional.of(RequestRate.empty()) : Optional.empty(),
+              connectionRate
+                ? Optional.of(ConnectionCreationRate.empty())
+                : Optional.empty()
+            )
+          );
           quotaManager.delete(quota);
         }
         return 0;
@@ -333,10 +314,10 @@ public class Cli implements Callable<Integer> {
   static class PropertiesOption {
 
     @CommandLine.Option(
-        names = {"-c", "--config"},
-        description =
-            "Client configuration properties file."
-                + "Must include connection to Kafka and Schema Registry")
+      names = { "-c", "--config" },
+      description = "Client configuration properties file." +
+      "Must include connection to Kafka and Schema Registry"
+    )
     Optional<Path> configPath;
 
     @ArgGroup(exclusive = false)
@@ -344,25 +325,24 @@ public class Cli implements Callable<Integer> {
 
     public Properties load() {
       return configPath
-          .map(
-              path -> {
-                try {
-                  final var p = new Properties();
-                  p.load(Files.newInputStream(path));
-                  return p;
-                } catch (Exception e) {
-                  throw new IllegalArgumentException(
-                      "ERROR: properties file at %s is failing to load".formatted(path));
-                }
-              })
-          .orElseGet(
-              () -> {
-                try {
-                  return contextOption.load();
-                } catch (IOException e) {
-                  throw new IllegalArgumentException("ERROR: loading contexts");
-                }
-              });
+        .map(path -> {
+          try {
+            final var p = new Properties();
+            p.load(Files.newInputStream(path));
+            return p;
+          } catch (Exception e) {
+            throw new IllegalArgumentException(
+              "ERROR: properties file at %s is failing to load".formatted(path)
+            );
+          }
+        })
+        .orElseGet(() -> {
+          try {
+            return contextOption.load();
+          } catch (IOException e) {
+            throw new IllegalArgumentException("ERROR: loading contexts");
+          }
+        });
     }
   }
 
@@ -382,8 +362,9 @@ public class Cli implements Callable<Integer> {
         return props;
       } else {
         err.printf(
-            "ERROR: Kafka context `%s` not found. Check that context already exist.%n",
-            kafkaContextName);
+          "ERROR: Kafka context `%s` not found. Check that context already exist.%n",
+          kafkaContextName
+        );
         return null;
       }
     }
@@ -394,16 +375,18 @@ public class Cli implements Callable<Integer> {
     @Override
     public String[] getVersion() throws IOException {
       final var url =
-          VersionProviderWithConfigProvider.class.getClassLoader().getResource("cli.properties");
+        VersionProviderWithConfigProvider.class.getClassLoader()
+          .getResource("cli.properties");
       if (url == null) {
-        return new String[] {
-          "No cli.properties file found in the classpath.",
-        };
+        return new String[] { "No cli.properties file found in the classpath." };
       }
       final var properties = new Properties();
       properties.load(url.openStream());
       return new String[] {
-        properties.getProperty("appName") + " version " + properties.getProperty("appVersion") + "",
+        properties.getProperty("appName") +
+        " version " +
+        properties.getProperty("appVersion") +
+        "",
         "Built: " + properties.getProperty("appBuildTime"),
       };
     }

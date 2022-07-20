@@ -16,29 +16,32 @@ public class SampleCommand implements Callable<Integer> {
   Cli.SchemaSourceOption schemaSource;
 
   @CommandLine.Option(
-      names = {"--pretty"},
-      defaultValue = "false",
-      description = "Print pretty/formatted JSON")
+    names = { "--pretty" },
+    defaultValue = "false",
+    description = "Print pretty/formatted JSON"
+  )
   boolean pretty;
 
   @CommandLine.Option(
-      names = {"--print-schema"},
-      defaultValue = "false",
-      description = "Print Avro Schema JSON")
+    names = { "--print-schema" },
+    defaultValue = "false",
+    description = "Print Avro Schema JSON"
+  )
   boolean schema;
 
   final ObjectMapper json = new ObjectMapper();
 
   @Override
   public Integer call() throws Exception {
-    final var payloadGenerator =
-        new PayloadGenerator(
-            new PayloadGenerator.Config(
-                Optional.empty(),
-                schemaSource.quickstart,
-                schemaSource.schemaPath,
-                1,
-                PayloadGenerator.Format.JSON));
+    final var payloadGenerator = new PayloadGenerator(
+      new PayloadGenerator.Config(
+        Optional.empty(),
+        schemaSource.quickstart,
+        schemaSource.schemaPath,
+        1,
+        PayloadGenerator.Format.JSON
+      )
+    );
     if (schema) {
       final var schema = json.readTree(payloadGenerator.schema());
       if (pretty) {

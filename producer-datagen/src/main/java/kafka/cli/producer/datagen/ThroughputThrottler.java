@@ -14,7 +14,8 @@ public class ThroughputThrottler {
   public ThroughputThrottler(long startMs, long targetThroughput) {
     this.startMs = startMs;
     this.targetThroughput = targetThroughput;
-    this.sleepTimeNs = targetThroughput > 0 ? NS_PER_SEC / targetThroughput : Long.MAX_VALUE;
+    this.sleepTimeNs =
+      targetThroughput > 0 ? NS_PER_SEC / targetThroughput : Long.MAX_VALUE;
   }
 
   public boolean shouldThrottle(long amountSoFar, long sendStartMs) {

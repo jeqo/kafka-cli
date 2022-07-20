@@ -19,21 +19,24 @@ import picocli.CommandLine;
 public class PerfCommand implements Callable<Integer> {
 
   @CommandLine.Option(
-      names = {"-t", "--topic"},
-      description = "target Kafka topic name",
-      required = true)
+    names = { "-t", "--topic" },
+    description = "target Kafka topic name",
+    required = true
+  )
   String topicName;
 
   @CommandLine.Option(
-      names = {"-n", "--num-records"},
-      description = "Number of records to produce",
-      required = true)
+    names = { "-n", "--num-records" },
+    description = "Number of records to produce",
+    required = true
+  )
   long numRecords;
 
   @CommandLine.Option(
-      names = {"-k", "--throughput"},
-      description = "Number of target records per second to produce",
-      defaultValue = "-1")
+    names = { "-k", "--throughput" },
+    description = "Number of target records per second to produce",
+    defaultValue = "-1"
+  )
   long throughput = -1L;
 
   @CommandLine.ArgGroup(multiplicity = "1")
@@ -43,14 +46,16 @@ public class PerfCommand implements Callable<Integer> {
   Cli.SchemaSourceOption schemaSource;
 
   @CommandLine.Option(
-      names = {"-f", "--format"},
-      description = "Record value format",
-      defaultValue = "JSON")
+    names = { "-f", "--format" },
+    description = "Record value format",
+    defaultValue = "JSON"
+  )
   PayloadGenerator.Format format;
 
   @CommandLine.Option(
-      names = {"-p", "--prop"},
-      description = "Additional client properties")
+    names = { "-p", "--prop" },
+    description = "Additional client properties"
+  )
   Map<String, String> additionalProperties = new HashMap<>();
 
   int reportingIntervalMs = 5_000;
@@ -68,27 +73,41 @@ public class PerfCommand implements Callable<Integer> {
     var keySerializer = new StringSerializer();
     var valueSerializer = PayloadGenerator.valueSerializer(format, producerConfig);
 
-    try (var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)) {
-      final var config =
-          new PerformanceRunner.Config(
-              numRecords, topicName, transactionEnabled, transactionDurationMs, shouldPrintMetrics);
-      final var payloadGenerator =
-          new PayloadGenerator(
-              new PayloadGenerator.Config(
-                  Optional.empty(),
-                  schemaSource.quickstart,
-                  schemaSource.schemaPath,
-                  numRecords,
-                  format));
-      final var throughputThrottler =
-          new ThroughputThrottler(System.currentTimeMillis(), throughput);
+    try (
+      var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)
+    ) {
+      final var config = new PerformanceRunner.Config(
+        numRecords,
+        topicName,
+        transactionEnabled,
+        transactionDurationMs,
+        shouldPrintMetrics
+      );
+      final var payloadGenerator = new PayloadGenerator(
+        new PayloadGenerator.Config(
+          Optional.empty(),
+          schemaSource.quickstart,
+          schemaSource.schemaPath,
+          numRecords,
+          format
+        )
+      );
+      final var throughputThrottler = new ThroughputThrottler(
+        System.currentTimeMillis(),
+        throughput
+      );
       final var stats = new Stats(numRecords, reportingIntervalMs);
 
       out.println("Avro Schema used to generate records:");
       out.println(payloadGenerator.schema());
 
-      var pp =
-          new PerformanceRunner(config, producer, payloadGenerator, throughputThrottler, stats);
+      var pp = new PerformanceRunner(
+        config,
+        producer,
+        payloadGenerator,
+        throughputThrottler,
+        stats
+      );
       pp.start();
     }
     return 0;
