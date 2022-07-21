@@ -220,17 +220,30 @@ public class KafkaEmulator {
         for (var r : rs) {
           // prepare record
           final var topicName = topicMap.getOrDefault(r.topic(), r.topic());
-          var record = new ProducerRecord<>(topicName, r.partition(), prevTime + r.afterMs(), r.key(), r.value());
+          var record = new ProducerRecord<>(
+            topicName,
+            r.partition(),
+            prevTime + r.afterMs(),
+            r.key(),
+            r.value()
+          );
           try {
             // wait
             var wait = (prevTime + r.afterMs()) - System.currentTimeMillis();
             if (!noWait && wait > 0) {
-              LOG.info("{}:{}:{}: waiting {} ms.", topicName, r.partition(), r.offset(), r.afterMs());
+              LOG.info(
+                "{}:{}:{}: waiting {} ms.",
+                topicName,
+                r.partition(),
+                r.offset(),
+                r.afterMs()
+              );
               Thread.sleep(r.afterMs());
             } else {
               LOG.info(
                 "{}:{}:{}: no waiting (expected after: {} ms.)",
-                topicName, r.partition(),
+                topicName,
+                r.partition(),
                 r.offset(),
                 r.afterMs()
               );
