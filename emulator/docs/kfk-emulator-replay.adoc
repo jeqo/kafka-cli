@@ -1,0 +1,84 @@
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:revnumber: 
+:manmanual: Kfk-emulator Manual
+:mansource: 
+:man-linkstyle: pass:[blue R < >]
+= kfk-emulator-replay(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+kfk-emulator-replay - Replay topic events
+
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*kfk-emulator replay* [*--dry-run*] [*--no-wait*] [*--exclude*=_<excludes>_]...
+                    [*--include*=_<includes>_]... [*-t*=_<String=String>_]...
+                    (*-c*=_<configPath>_ | [*--kafka*=_<kafkaContextName>_
+                    [*--sr*=_<srContextName>_]]) _<archivePath>_
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Replay topic events
+
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*-c*, *--config*=_<configPath>_::
+  Client configuration properties file.Must include connection to Kafka
+
+*--dry-run*::
+  
+
+*--exclude*=_<excludes>_::
+  
+
+*--include*=_<includes>_::
+  
+
+*--kafka*=_<kafkaContextName>_::
+  Kafka context name
+
+*--no-wait*::
+  
+
+*--sr*=_<srContextName>_::
+  Schema Registry context name
+
+*-t*, *--topic-mapping*=_<String=String>_::
+  
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+== Arguments
+
+_<archivePath>_::
+  Path to emulator archive
+
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]
