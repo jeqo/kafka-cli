@@ -1,26 +1,11 @@
 package kafka.cli.emulator;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Collection;
-import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.serialization.IntegerDeserializer;
-import org.apache.kafka.common.serialization.IntegerSerializer;
-import org.apache.kafka.common.serialization.LongDeserializer;
-import org.apache.kafka.common.serialization.LongSerializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 
 public class SqliteStore {
-
-  final StringDeserializer stringDeserializer = new StringDeserializer();
-  final LongDeserializer longDeserializer = new LongDeserializer();
-  final IntegerDeserializer intDeserializer = new IntegerDeserializer();
-  final StringSerializer stringSerializer = new StringSerializer();
-  final LongSerializer longSerializer = new LongSerializer();
-  final IntegerSerializer intSerializer = new IntegerSerializer();
 
   final Path archivePath;
 
@@ -40,39 +25,30 @@ public class SqliteStore {
                         ORDER BY offset ASC"""
       );
       while (rs.next()) {
-        final var tp = new TopicPartition(rs.getString("topic"), rs.getInt("partition"));
         final var keyFormat = EmulatorArchive.FieldFormat.valueOf(
           rs.getString("key_format")
         );
-        final var key =
-          switch (keyFormat) {
-            case BYTES -> rs.getBytes("key_bytes");
-            case INTEGER -> intSerializer.serialize("", rs.getInt("key_int"));
-            case LONG -> longSerializer.serialize("", rs.getLong("key_long"));
-            case STRING -> stringSerializer.serialize("", rs.getString("key_string"));
-          };
         final var valueFormat = EmulatorArchive.FieldFormat.valueOf(
           rs.getString("value_format")
         );
-        final var value =
-          switch (valueFormat) {
-            case BYTES -> rs.getBytes("value_bytes");
-            case INTEGER -> intSerializer.serialize("", rs.getInt("value_int"));
-            case LONG -> longSerializer.serialize("", rs.getLong("value_long"));
-            case STRING -> stringSerializer.serialize("", rs.getString("value_string"));
-          };
-        final var record = new EmulatorArchive.EmulatorRecord(
-          tp.topic(),
-          tp.partition(),
+
+        archive.append(
+          rs.getString("topic"),
+          rs.getInt("partition"),
           rs.getLong("offset"),
           rs.getLong("timestamp"),
           rs.getLong("after_ms"),
           keyFormat,
-          key,
           valueFormat,
-          value
+          rs.getBytes("key_bytes"),
+          rs.getBytes("value_bytes"),
+          rs.getString("key_string"),
+          rs.getString("value_string"),
+          rs.getInt("key_int"),
+          rs.getInt("value_int"),
+          rs.getLong("key_long"),
+          rs.getLong("value_long")
         );
-        archive.append(tp, record);
       }
       return archive;
     } catch (SQLException e) {
@@ -165,23 +141,17 @@ public class SqliteStore {
             if (r.key() != null) {
               switch (r.keyFormat()) {
                 case BYTES -> ps.setBytes(8, r.key());
-                case STRING -> ps.setString(
-                  10,
-                  stringDeserializer.deserialize("", r.key())
-                );
-                case INTEGER -> ps.setInt(12, intDeserializer.deserialize("", r.key()));
-                case LONG -> ps.setLong(14, longDeserializer.deserialize("", r.key()));
+                case STRING -> ps.setString(10, archive.keyAsString(r));
+                case INTEGER -> ps.setInt(12, archive.keyAsInt(r));
+                case LONG -> ps.setLong(14, archive.keyAsLong(r));
               }
             }
             if (r.value() != null) {
               switch (r.valueFormat()) {
                 case BYTES -> ps.setBytes(9, r.value());
-                case STRING -> ps.setString(
-                  11,
-                  stringDeserializer.deserialize("", r.value())
-                );
-                case INTEGER -> ps.setInt(13, intDeserializer.deserialize("", r.value()));
-                case LONG -> ps.setLong(15, longDeserializer.deserialize("", r.value()));
+                case STRING -> ps.setString(11, archive.valueAsString(r));
+                case INTEGER -> ps.setInt(13, archive.valueAsInt(r));
+                case LONG -> ps.setLong(15, archive.valueAsLong(r));
               }
             }
             ps.addBatch();
@@ -193,29 +163,5 @@ public class SqliteStore {
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  public static void main(String[] args) {
-    var loader = new SqliteStore(Path.of("test.db"));
-    var archive = EmulatorArchive.create();
-    archive.append(
-      new TopicPartition("t1", 0),
-      new EmulatorArchive.EmulatorRecord(
-        "t1",
-        0,
-        0L,
-        System.currentTimeMillis(),
-        100L,
-        EmulatorArchive.FieldFormat.BYTES,
-        "s".getBytes(StandardCharsets.UTF_8),
-        EmulatorArchive.FieldFormat.BYTES,
-        "v".getBytes(StandardCharsets.UTF_8)
-      )
-    );
-    loader.save(archive);
-
-    var archive2 = loader.load();
-
-    System.out.println(archive2.equals(archive));
   }
 }

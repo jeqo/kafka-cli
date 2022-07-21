@@ -126,28 +126,7 @@ public class KafkaReplayer {
     var emulator = new KafkaReplayer();
     var context = KafkaContexts.load().get("local");
     var props = context.properties();
-    //    emulator.record(
-    //      props,
-    //      List.of("t5"),
-    //      EmulatorArchive.FieldFormat.STRING,
-    //      EmulatorArchive.FieldFormat.STRING,
-    //      RecordStartFrom.of(),
-    //      RecordEndAt.of(10)
-    //    );
 
     emulator.replay(props, archiveLoader.load(), Map.of("t5", "t14"), false, true);
-    // Check Thread handling by parallel stream
-    //    final var map = Map.of("s1", "a", "s2", "b", "s3", "c");
-    //    map.keySet().parallelStream()
-    //        .forEach(
-    //            k -> {
-    //              System.out.println(Thread.currentThread().getName());
-    //              try {
-    //                Thread.sleep(1000);
-    //              } catch (InterruptedException e) {
-    //                throw new RuntimeException(e);
-    //              }
-    //              System.out.println(map.get(k));
-    //            });
   }
 }

@@ -47,7 +47,7 @@ public class KafkaRecorder {
     // set offsets from
     // consumer loop
     var latestTimestamps = new HashMap<TopicPartition, Long>();
-    final var archive = EmulatorArchive.create();
+    final var archive = EmulatorArchive.with(keyFormat, valueFormat);
     var listTopics = consumer.listTopics();
     var topicPartitions = new ArrayList<TopicPartition>();
     for (var topic : topics) {
@@ -98,14 +98,8 @@ public class KafkaRecorder {
           } else {
             afterMs = currentTimestamp - latestTimestamp;
           }
-          var zipRecord = EmulatorArchive.EmulatorRecord.from(
-            record,
-            keyFormat,
-            valueFormat,
-            afterMs
-          );
           // append to topic-partition file
-          archive.append(partition, zipRecord);
+          archive.append(partition, record, afterMs);
           latestTimestamps.put(partition, currentTimestamp);
           if (isDone(partition, archive, endAt)) {
             done.put(partition, true);
@@ -201,7 +195,7 @@ public class KafkaRecorder {
     }
   }
 
-  public static void main(String[] args) throws IOException, InterruptedException {
+  public static void main(String[] args) throws IOException {
     var emulator = new KafkaRecorder();
     var context = KafkaContexts.load().get("local");
     var props = context.properties();
@@ -213,20 +207,5 @@ public class KafkaRecorder {
       RecordStartFrom.of(),
       RecordEndAt.of(10)
     );
-    //    var archiveLoader = new ArchiveStore.SqliteArchiveLoader(Path.of("test.db"));
-    //    emulator.replay(props, archiveLoader.load(), Map.of("t5", "t14"), false, true);
-    // Check Thread handling by parallel stream
-    //    final var map = Map.of("s1", "a", "s2", "b", "s3", "c");
-    //    map.keySet().parallelStream()
-    //        .forEach(
-    //            k -> {
-    //              System.out.println(Thread.currentThread().getName());
-    //              try {
-    //                Thread.sleep(1000);
-    //              } catch (InterruptedException e) {
-    //                throw new RuntimeException(e);
-    //              }
-    //              System.out.println(map.get(k));
-    //            });
   }
 }
