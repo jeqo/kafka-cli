@@ -37,6 +37,11 @@ public class KafkaEmulator {
     this.archiveLoader = archiveLoader;
   }
 
+  public void init() {
+    final var archive = EmulatorArchive.create();
+    archiveLoader.save(archive);
+  }
+
   /**
    * Read and package topics records into an archive.
    *
