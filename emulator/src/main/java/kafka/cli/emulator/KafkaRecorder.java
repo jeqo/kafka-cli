@@ -1,6 +1,7 @@
 package kafka.cli.emulator;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.OptionalLong;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import kafka.context.KafkaContexts;
+import kafka.context.sr.SchemaRegistryContexts;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
@@ -47,7 +49,7 @@ public class KafkaRecorder {
     // set offsets from
     // consumer loop
     var latestTimestamps = new HashMap<TopicPartition, Long>();
-    final var archive = EmulatorArchive.with(keyFormat, valueFormat);
+    final var archive = EmulatorArchive.with(keyFormat, valueFormat, properties);
     var listTopics = consumer.listTopics();
     var topicPartitions = new ArrayList<TopicPartition>();
     for (var topic : topics) {
@@ -199,13 +201,16 @@ public class KafkaRecorder {
     var emulator = new KafkaRecorder();
     var context = KafkaContexts.load().get("local");
     var props = context.properties();
-    emulator.record(
+    var sr = SchemaRegistryContexts.load().get("local");
+    props.putAll(sr.properties());
+    var archive = emulator.record(
       props,
-      List.of("t5"),
+      List.of("t_sr_1"),
       EmulatorArchive.FieldFormat.STRING,
-      EmulatorArchive.FieldFormat.STRING,
+      EmulatorArchive.FieldFormat.SR_AVRO,
       RecordStartFrom.of(),
-      RecordEndAt.of(10)
+      RecordEndAt.of()
     );
+    new SqliteStore(Path.of("test.db")).save(archive);
   }
 }

@@ -79,9 +79,19 @@ public class SqliteStore {
                             key_int int,
                             value_int int,
                             key_long long,
-                            value_long long
+                            value_long long,
+                            key_sr_avro text,
+                            value_sr_avro text
                         )"""
       );
+      st.executeUpdate("""
+              CREATE TABLE IF NOT EXISTS schemas_v1
+              (
+                topic text not null,
+                is_key boolean not null,
+                schema_type text not null,
+                schema text not null
+              )""");
       st.executeUpdate(
         """
                         CREATE INDEX IF NOT EXISTS records_v1_topic
@@ -97,6 +107,44 @@ public class SqliteStore {
                         CREATE INDEX IF NOT EXISTS records_v1_offset
                         ON records_v1 (offset)"""
       );
+      st.executeUpdate(
+              """
+                              CREATE INDEX IF NOT EXISTS schemas_v1_topic
+                              ON schemas_v1 (topic)"""
+      );
+      // prepare schemas batch
+      final var schemaPs = conn.prepareStatement("""
+              INSERT INTO schemas_v1 (
+                topic,
+                is_key,
+                schema_type,
+                schema
+              )
+              VALUES (
+                ?, ?, ?, ?
+              )""");
+      archive.keySchemas.forEach((s, schema) -> {
+        try {
+          schemaPs.setString(1, schema.topic());
+          schemaPs.setBoolean(2, schema.isKey());
+          schemaPs.setString(3, schema.type());
+          schemaPs.setString(4, schema.schema());
+          schemaPs.addBatch();
+        } catch (SQLException e) {
+          throw new RuntimeException(e);
+        }
+      });
+      archive.valueSchemas.forEach((s, schema) -> {
+        try {
+          schemaPs.setString(1, schema.topic());
+          schemaPs.setBoolean(2, schema.isKey());
+          schemaPs.setString(3, schema.type());
+          schemaPs.setString(4, schema.schema());
+          schemaPs.addBatch();
+        } catch (SQLException e) {
+          throw new RuntimeException(e);
+        }
+      });
       // prepare batch
       final var ps = conn.prepareStatement(
         """
@@ -115,16 +163,20 @@ public class SqliteStore {
                                           key_int,
                                           value_int,
                                           key_long,
-                                          value_long
+                                          value_long,
+                                          key_sr_avro,
+                                          value_sr_avro
                                         )
                                         VALUES (
                                           ?, ?, ?, ?, ?, ?, ?,
                                           ?, ?,
                                           ?, ?,
                                           ?, ?,
+                                          ?, ?,
                                           ?, ?
                                         )"""
       );
+      schemaPs.executeBatch();
       archive
         .all()
         .parallelStream()
@@ -144,6 +196,7 @@ public class SqliteStore {
                 case STRING -> ps.setString(10, archive.keyAsString(r));
                 case INTEGER -> ps.setInt(12, archive.keyAsInt(r));
                 case LONG -> ps.setLong(14, archive.keyAsLong(r));
+                case SR_AVRO -> ps.setString(16, archive.keyAsString(r));
               }
             }
             if (r.value() != null) {
@@ -152,6 +205,7 @@ public class SqliteStore {
                 case STRING -> ps.setString(11, archive.valueAsString(r));
                 case INTEGER -> ps.setInt(13, archive.valueAsInt(r));
                 case LONG -> ps.setLong(15, archive.valueAsLong(r));
+                case SR_AVRO -> ps.setString(17, archive.valueAsString(r));
               }
             }
             ps.addBatch();

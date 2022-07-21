@@ -1,12 +1,20 @@
 package kafka.cli.emulator;
 
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.EncoderFactory;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
@@ -21,16 +29,21 @@ public class EmulatorArchive {
   private final Map<TopicPartition, List<EmulatorRecord>> records = new HashMap<>();
   private final Map<TopicPartition, Long> oldestOffsets = new HashMap<>();
   private final Map<TopicPartition, Long> oldestTimestamps = new HashMap<>();
+  final Map<String, Schema> keySchemas = new HashMap<>();
+  final Map<String, Schema> valueSchemas = new HashMap<>();
 
   List<String> includeTopics = new ArrayList<>();
   List<String> excludeTopics = new ArrayList<>();
 
   FieldFormat keyFormat;
   FieldFormat valueFormat;
+  Properties properties;
 
   final StringDeserializer stringDeserializer = new StringDeserializer();
   final LongDeserializer longDeserializer = new LongDeserializer();
   final IntegerDeserializer intDeserializer = new IntegerDeserializer();
+  final KafkaAvroDeserializer keyAvroDeserializer = new KafkaAvroDeserializer();
+  final KafkaAvroDeserializer valueAvroDeserializer = new KafkaAvroDeserializer();
 
   final StringSerializer stringSerializer = new StringSerializer();
   final LongSerializer longSerializer = new LongSerializer();
@@ -48,10 +61,33 @@ public class EmulatorArchive {
     this.includeTopics = includeTopics;
   }
 
-  public static EmulatorArchive with(FieldFormat keyFormat, FieldFormat valueFormat) {
+  public static EmulatorArchive with(FieldFormat keyFormat, FieldFormat valueFormat, Properties properties) {
     final var emulatorArchive = new EmulatorArchive();
     emulatorArchive.keyFormat = keyFormat;
     emulatorArchive.valueFormat = valueFormat;
+    emulatorArchive.properties = properties;
+    if (keyFormat.isSchemaRegistryBased()) {
+      if (keyFormat == FieldFormat.SR_AVRO) {
+        emulatorArchive.keyAvroDeserializer.configure(
+                properties
+                        .keySet()
+                        .stream()
+                        .collect(Collectors.toMap(String::valueOf, properties::get)),
+                true
+        );
+      }
+    }
+    if (valueFormat.isSchemaRegistryBased()) {
+      if (valueFormat == FieldFormat.SR_AVRO) {
+        emulatorArchive.valueAvroDeserializer.configure(
+                properties
+                        .keySet()
+                        .stream()
+                        .collect(Collectors.toMap(String::valueOf, properties::get)),
+                true
+        );
+      }
+    }
     return emulatorArchive;
   }
 
@@ -75,16 +111,16 @@ public class EmulatorArchive {
     final var key =
       switch (keyFormat) {
         case BYTES -> keyBytes;
-        case INTEGER -> intSerializer.serialize("", keyInt);
-        case LONG -> longSerializer.serialize("", keyLong);
-        case STRING -> stringSerializer.serialize("", keyString);
+        case INTEGER -> intSerializer.serialize(topic, keyInt);
+        case LONG -> longSerializer.serialize(topic, keyLong);
+        case STRING, SR_AVRO -> stringSerializer.serialize(topic, keyString);
       };
     final var value =
       switch (valueFormat) {
         case BYTES -> valueBytes;
-        case INTEGER -> intSerializer.serialize("", valueInt);
-        case LONG -> longSerializer.serialize("", valueLong);
-        case STRING -> stringSerializer.serialize("", valueString);
+        case INTEGER -> intSerializer.serialize(topic, valueInt);
+        case LONG -> longSerializer.serialize(topic, valueLong);
+        case STRING, SR_AVRO -> stringSerializer.serialize(topic, valueString);
       };
 
     var emuRecord = new EmulatorRecord(
@@ -107,6 +143,18 @@ public class EmulatorArchive {
     ConsumerRecord<byte[], byte[]> record,
     long afterMs
   ) {
+    var key = record.key();
+    if (keyFormat.equals(FieldFormat.SR_AVRO)) {
+      var avro = (GenericRecord) keyAvroDeserializer.deserialize(topicPartition.topic(), key);
+      keySchemas.put(topicPartition.topic(), new Schema(topicPartition.topic(), true, "AVRO", avro.getSchema().toString(true)));
+      key = jsonString(avro);
+    }
+    var value = record.value();
+    if (valueFormat.equals(FieldFormat.SR_AVRO)) {
+      var avro = (GenericRecord) valueAvroDeserializer.deserialize(topicPartition.topic(), value);
+      valueSchemas.put(topicPartition.topic(), new Schema(topicPartition.topic(), false, "AVRO", avro.getSchema().toString(true)));
+      value = jsonString(avro);
+    }
     var emuRecord = new EmulatorRecord(
       record.topic(),
       record.partition(),
@@ -114,11 +162,27 @@ public class EmulatorArchive {
       record.timestamp(),
       afterMs,
       keyFormat,
-      record.key(),
+      key,
       valueFormat,
-      record.value()
+      value
     );
     append(topicPartition, emuRecord);
+  }
+
+  private byte[] jsonString(GenericRecord record) {
+    try {
+      final var outputStream = new ByteArrayOutputStream();
+      final var schema = record.getSchema();
+      final var datumWriter = new GenericDatumWriter<GenericRecord>(schema);
+      final var encoder = EncoderFactory
+              .get()
+              .jsonEncoder(record.getSchema(), outputStream);
+      datumWriter.write(record, encoder);
+      encoder.flush();
+      return outputStream.toString().getBytes(StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new RuntimeException("Error converting to json", e);
+    }
   }
 
   public void append(TopicPartition topicPartition, EmulatorRecord record) {
@@ -226,31 +290,21 @@ public class EmulatorArchive {
     byte[] key,
     FieldFormat valueFormat,
     byte[] value
-  ) {
-    public static EmulatorRecord from(
-      ConsumerRecord<byte[], byte[]> record,
-      FieldFormat keyFormat,
-      FieldFormat valueFormat,
-      long afterMs
-    ) {
-      return new EmulatorRecord(
-        record.topic(),
-        record.partition(),
-        record.offset(),
-        record.timestamp(),
-        afterMs,
-        keyFormat,
-        record.key(),
-        valueFormat,
-        record.value()
-      );
-    }
-  }
+  ) {}
+
+  record Schema (String topic, boolean isKey, String type, String schema) {}
 
   enum FieldFormat {
     STRING,
     LONG,
     INTEGER,
     BYTES,
+    //Schema Registry based
+    SR_AVRO,
+    ;
+
+    public boolean isSchemaRegistryBased() {
+      return this.equals(SR_AVRO);
+    }
   }
 }
