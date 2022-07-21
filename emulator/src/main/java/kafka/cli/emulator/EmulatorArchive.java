@@ -23,34 +23,34 @@ public class EmulatorArchive {
     return new EmulatorArchive();
   }
 
-  public void append(TopicPartition topicPartition, EmulatorRecord zipRecord) {
+  public void append(TopicPartition topicPartition, EmulatorRecord record) {
     records.computeIfPresent(
       topicPartition,
-      (tp, zipRecords) -> {
-        zipRecords.add(zipRecord);
+      (tp, records) -> {
+        records.add(record);
         oldestOffsets.put(
           tp,
-          oldestOffsets.get(tp) < zipRecord.offset()
-            ? zipRecord.offset()
+          oldestOffsets.get(tp) < record.offset()
+            ? record.offset()
             : oldestOffsets.get(tp)
         );
         oldestTimestamps.put(
           tp,
-          oldestTimestamps.get(tp) < zipRecord.timestamp()
-            ? zipRecord.timestamp()
+          oldestTimestamps.get(tp) < record.timestamp()
+            ? record.timestamp()
             : oldestTimestamps.get(tp)
         );
-        return zipRecords;
+        return records;
       }
     );
     records.computeIfAbsent(
       topicPartition,
       tp -> {
-        final var zipRecords = new ArrayList<EmulatorRecord>();
-        zipRecords.add(zipRecord);
-        oldestOffsets.put(tp, zipRecord.offset());
-        oldestTimestamps.put(tp, zipRecord.timestamp());
-        return zipRecords;
+        final var records = new ArrayList<EmulatorRecord>();
+        records.add(record);
+        oldestOffsets.put(tp, record.offset());
+        oldestTimestamps.put(tp, record.timestamp());
+        return records;
       }
     );
   }
