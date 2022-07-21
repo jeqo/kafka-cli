@@ -30,7 +30,9 @@ import picocli.CommandLine.Option;
                 """,
   versionProvider = Cli.VersionProviderWithConfigProvider.class,
   mixinStandardHelpOptions = true,
-  subcommands = { Cli.InitCommand.class, Cli.RecordCommand.class, Cli.ReplayCommand.class }
+  subcommands = {
+    Cli.InitCommand.class, Cli.RecordCommand.class, Cli.ReplayCommand.class,
+  }
 )
 public class Cli implements Callable<Integer> {
 
@@ -46,18 +48,18 @@ public class Cli implements Callable<Integer> {
   }
 
   @CommandLine.Command(
-      name = "init",
-      description = """
+    name = "init",
+    description = """
                 Initialize emualator archive file
                 """
   )
   static class InitCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(
-        index = "0",
-        description = """
+      index = "0",
+      description = """
                     Path to emulator archive""",
-        defaultValue = "./kfk-emulator.db"
+      defaultValue = "./kfk-emulator.db"
     )
     Path archivePath;
 
@@ -74,6 +76,7 @@ public class Cli implements Callable<Integer> {
       }
     }
   }
+
   @CommandLine.Command(
     name = "record",
     description = """

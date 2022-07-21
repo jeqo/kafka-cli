@@ -1,18 +1,18 @@
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:revnumber: kafka-cli-emulator version 0.2.0
+:revnumber: 
 :manmanual: Kfk-emulator Manual
-:mansource: kafka-cli-emulator version 0.2.0
+:mansource: 
 :man-linkstyle: pass:[blue R < >]
-= kfk-emulator(1)
+= kfk-emulator-init(1)
 
 // end::picocli-generated-man-section-header[]
 
 // tag::picocli-generated-man-section-name[]
 == Name
 
-kfk-emulator - Record and replay topic events
+kfk-emulator-init - Initialize emualator archive file
 
 
 // end::picocli-generated-man-section-name[]
@@ -20,50 +20,30 @@ kfk-emulator - Record and replay topic events
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*kfk-emulator* [*-hV*] [COMMAND]
+*kfk-emulator init* _<archivePath>_
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Record and replay topic events
+Initialize emualator archive file
 
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
-== Options
-
-*-h*, *--help*::
-  Show this help message and exit.
-
-*-V*, *--version*::
-  Print version information and exit.
-
 // end::picocli-generated-man-section-options[]
 
 // tag::picocli-generated-man-section-arguments[]
+== Arguments
+
+_<archivePath>_::
+  Path to emulator archive
+
 // end::picocli-generated-man-section-arguments[]
 
 // tag::picocli-generated-man-section-commands[]
-== Commands
-
-xref:kfk-emulator-init.adoc[*init*]::
-  Initialize emualator archive file
-+
-
-
-xref:kfk-emulator-record.adoc[*record*]::
-  Record topic events
-+
-
-
-xref:kfk-emulator-replay.adoc[*replay*]::
-  Replay topic events
-+
-
-
 // end::picocli-generated-man-section-commands[]
 
 // tag::picocli-generated-man-section-exit-status[]
