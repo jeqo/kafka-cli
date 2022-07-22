@@ -1,0 +1,122 @@
+[
+  {
+    "name": "org.apache.commons.compress.archivers.ArchiveOutputStream",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.serializers.context.NullContextNameStrategy",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.serializers.subject.TopicNameStrategy",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.serializers.subject.TopicRecordNameStrategy",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.serializers.subject.RecordNameStrategy",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.ErrorMessage",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.Schema",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.Config",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.SchemaReference",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.SchemaString",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.SchemaTypeConverter",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.ServerClusterId",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.SubjectVersion",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.requests.CompatibilityCheckResponse",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.requests.ConfigUpdateRequest",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.requests.ModeGetResponse",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.requests.ModeUpdateRequest",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.requests.RegisterSchemaRequest",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.requests.RegisterSchemaResponse",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.security.basicauth.BasicAuthCredentialProvider",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.security.basicauth.BasicAuthCredentialProvider",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.security.basicauth.SaslBasicAuthCredentialProvider",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.security.basicauth.UrlBasicAuthCredentialProvider",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.confluent.kafka.schemaregistry.client.security.basicauth.UserInfoCredentialProvider",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  }
+]

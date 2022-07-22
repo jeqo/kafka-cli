@@ -66,9 +66,8 @@ public class Cli implements Callable<Integer> {
     @Override
     public Integer call() {
       try {
-        final var store = new ArchiveStore.SqliteArchiveLoader(archivePath);
-        final var emu = new KafkaEmulator(store);
-        emu.init();
+        final var store = new SqliteStore(archivePath);
+        store.save(EmulatorArchive.create());
         return 0;
       } catch (Exception e) {
         e.printStackTrace();
@@ -114,9 +113,9 @@ public class Cli implements Callable<Integer> {
     @Override
     public Integer call() {
       try {
-        final var store = new ArchiveStore.SqliteArchiveLoader(archivePath);
-        final var emu = new KafkaEmulator(store);
-        emu.record(
+        final var store = new SqliteStore(archivePath);
+        final var emu = new KafkaRecorder();
+        final var archive = emu.record(
           propertiesOption.load(),
           topics,
           keyFormat.orElse(EmulatorArchive.FieldFormat.BYTES),
@@ -124,6 +123,7 @@ public class Cli implements Callable<Integer> {
           startFrom.build(),
           endAt.build()
         );
+        store.save(archive);
         return 0;
       } catch (Exception e) {
         e.printStackTrace();
@@ -169,9 +169,14 @@ public class Cli implements Callable<Integer> {
     @Override
     public Integer call() {
       try {
-        final var store = new ArchiveStore.SqliteArchiveLoader(archivePath);
-        final var emu = new KafkaEmulator(store);
-        emu.replay(propertiesOption.load(), includes, excludes, topicMap, noWait, dryRun);
+        final var store = new SqliteStore(archivePath);
+        final var properties = propertiesOption.load();
+        // load archive
+        var archive = store.load(properties);
+        archive.setIncludeTopics(includes);
+        archive.setExcludeTopics(excludes);
+        final var emu = new KafkaReplayer();
+        emu.replay(properties, archive, topicMap, noWait, dryRun);
         return 0;
       } catch (Exception e) {
         e.printStackTrace();
@@ -188,12 +193,12 @@ public class Cli implements Callable<Integer> {
     @Option(names = { "--start-from-offsets" })
     Map<String, Long> offsets = new HashMap<>();
 
-    public KafkaEmulator.RecordStartFrom build() {
+    public KafkaRecorder.RecordStartFrom build() {
       if (fromTime.isPresent()) {
-        return KafkaEmulator.RecordStartFrom.of(fromTime.get().toInstant(ZoneOffset.UTC));
+        return KafkaRecorder.RecordStartFrom.of(fromTime.get().toInstant(ZoneOffset.UTC));
       }
       if (!offsets.isEmpty()) {
-        return KafkaEmulator.RecordStartFrom.of(
+        return KafkaRecorder.RecordStartFrom.of(
           offsets
             .keySet()
             .stream()
@@ -209,7 +214,7 @@ public class Cli implements Callable<Integer> {
             )
         );
       }
-      return KafkaEmulator.RecordStartFrom.of();
+      return KafkaRecorder.RecordStartFrom.of();
     }
   }
 
@@ -224,15 +229,15 @@ public class Cli implements Callable<Integer> {
     @Option(names = { "--end-at-offsets" })
     Map<String, Long> offsets = new HashMap<>();
 
-    public KafkaEmulator.RecordEndAt build() {
+    public KafkaRecorder.RecordEndAt build() {
       if (toTime.isPresent()) {
-        return KafkaEmulator.RecordEndAt.of(toTime.get().toInstant(ZoneOffset.UTC));
+        return KafkaRecorder.RecordEndAt.of(toTime.get().toInstant(ZoneOffset.UTC));
       }
       if (recordsPerPartition.isPresent()) {
-        return KafkaEmulator.RecordEndAt.of(recordsPerPartition.get());
+        return KafkaRecorder.RecordEndAt.of(recordsPerPartition.get());
       }
       if (!offsets.isEmpty()) {
-        return KafkaEmulator.RecordEndAt.of(
+        return KafkaRecorder.RecordEndAt.of(
           offsets
             .keySet()
             .stream()
@@ -248,7 +253,7 @@ public class Cli implements Callable<Integer> {
             )
         );
       }
-      return KafkaEmulator.RecordEndAt.of();
+      return KafkaRecorder.RecordEndAt.of();
     }
   }
 

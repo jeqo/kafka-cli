@@ -8,39 +8,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Properties;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import kafka.context.KafkaContexts;
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.NewTopic;
+import kafka.context.sr.SchemaRegistryContexts;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class KafkaEmulator {
+public class KafkaRecorder {
 
-  static final Logger LOG = LoggerFactory.getLogger(KafkaEmulator.class);
-  final ArchiveStore archiveLoader;
-
-  public KafkaEmulator(ArchiveStore archiveLoader) {
-    this.archiveLoader = archiveLoader;
-  }
-
-  public void init() {
-    final var archive = EmulatorArchive.create();
-    archiveLoader.save(archive);
-  }
+  static final Logger LOG = LoggerFactory.getLogger(KafkaRecorder.class);
 
   /**
    * Read and package topics records into an archive.
@@ -50,7 +32,7 @@ public class KafkaEmulator {
    * results are flushed into the zip archive files.
    *
    */
-  public void record(
+  public EmulatorArchive record(
     Properties properties,
     List<String> topics,
     EmulatorArchive.FieldFormat keyFormat,
@@ -67,7 +49,7 @@ public class KafkaEmulator {
     // set offsets from
     // consumer loop
     var latestTimestamps = new HashMap<TopicPartition, Long>();
-    final var archive = EmulatorArchive.create();
+    final var archive = EmulatorArchive.with(keyFormat, valueFormat, properties);
     var listTopics = consumer.listTopics();
     var topicPartitions = new ArrayList<TopicPartition>();
     for (var topic : topics) {
@@ -118,14 +100,8 @@ public class KafkaEmulator {
           } else {
             afterMs = currentTimestamp - latestTimestamp;
           }
-          var zipRecord = EmulatorArchive.EmulatorRecord.from(
-            record,
-            keyFormat,
-            valueFormat,
-            afterMs
-          );
           // append to topic-partition file
-          archive.append(partition, zipRecord);
+          archive.append(partition, record, afterMs);
           latestTimestamps.put(partition, currentTimestamp);
           if (isDone(partition, archive, endAt)) {
             done.put(partition, true);
@@ -140,7 +116,7 @@ public class KafkaEmulator {
         allDone = done.values().stream().reduce((r, l) -> r && l).orElse(false);
       }
     }
-    archiveLoader.save(archive);
+    return archive;
   }
 
   private boolean isDone(TopicPartition tp, EmulatorArchive archive, RecordEndAt endAt) {
@@ -164,110 +140,6 @@ public class KafkaEmulator {
       }
     }
     return false;
-  }
-
-  /**
-   * Read zip archive files and produce records into Kafka topics with the frequency defined in the
-   * archive.
-   */
-  public void replay(
-    Properties properties,
-    List<String> include,
-    List<String> exclude,
-    Map<String, String> topicMap,
-    boolean noWait,
-    boolean dryRun
-  ) throws InterruptedException {
-    // load archive
-    var archive = archiveLoader.load();
-    archive.setIncludeTopics(include);
-    archive.setExcludeTopics(exclude);
-    // create producer
-    var keySerializer = new ByteArraySerializer();
-    var valueSerializer = new ByteArraySerializer();
-    properties.put("acks", "1");
-    KafkaProducer<byte[], byte[]> producer = null;
-    if (!dryRun) producer =
-      new KafkaProducer<>(properties, keySerializer, valueSerializer);
-    // per partition
-    final var topicPartitionNumber = archive.topicPartitionNumber();
-    // prepare topics
-    if (!dryRun) {
-      try (var admin = AdminClient.create(properties)) {
-        var topics = admin.listTopics().names().get();
-        var newTopics = new ArrayList<NewTopic>();
-        for (var t : topicPartitionNumber.keySet()) {
-          final var topicName = topicMap.getOrDefault(t, t);
-          if (!topics.contains(topicName)) {
-            final var newTopic = new NewTopic(
-              topicName,
-              Optional.of(topicPartitionNumber.get(t)),
-              Optional.empty()
-            );
-            newTopics.add(newTopic);
-          }
-        }
-        admin.createTopics(newTopics).all().get();
-      } catch (ExecutionException | InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    final var size = archive.topicPartitions().size();
-    var executor = Executors.newFixedThreadPool(size);
-    var countDownLatch = new CountDownLatch(size);
-    for (var topicPartition : archive.topicPartitions()) {
-      var rs = archive.records(topicPartition);
-      final var finalProducer = producer;
-      executor.submit(() -> {
-        long prevTime = System.currentTimeMillis();
-        // per record
-        for (var r : rs) {
-          // prepare record
-          final var topicName = topicMap.getOrDefault(r.topic(), r.topic());
-          var record = new ProducerRecord<>(
-            topicName,
-            r.partition(),
-            prevTime + r.afterMs(),
-            r.key(),
-            r.value()
-          );
-          try {
-            // wait
-            var wait = (prevTime + r.afterMs()) - System.currentTimeMillis();
-            if (!noWait && wait > 0) {
-              LOG.info(
-                "{}:{}:{}: waiting {} ms.",
-                topicName,
-                r.partition(),
-                r.offset(),
-                r.afterMs()
-              );
-              Thread.sleep(r.afterMs());
-            } else {
-              LOG.info(
-                "{}:{}:{}: no waiting (expected after: {} ms.)",
-                topicName,
-                r.partition(),
-                r.offset(),
-                r.afterMs()
-              );
-            }
-            if (!dryRun) {
-              var meta = finalProducer.send(record).get();
-              prevTime = meta.timestamp();
-            } else prevTime = System.currentTimeMillis();
-          } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-          }
-        }
-        countDownLatch.countDown();
-        LOG.info("Replay for {} finished", topicPartition);
-      });
-    }
-    countDownLatch.await();
-    LOG.info("Replay finished");
-    executor.shutdown();
   }
 
   record RecordStartFrom(
@@ -325,33 +197,20 @@ public class KafkaEmulator {
     }
   }
 
-  public static void main(String[] args) throws IOException, InterruptedException {
-    var archiveLoader = new ArchiveStore.SqliteArchiveLoader(Path.of("test.db"));
-    var emulator = new KafkaEmulator(archiveLoader);
+  public static void main(String[] args) throws IOException {
+    var emulator = new KafkaRecorder();
     var context = KafkaContexts.load().get("local");
     var props = context.properties();
-    //    emulator.record(
-    //      props,
-    //      List.of("t5"),
-    //      EmulatorArchive.FieldFormat.STRING,
-    //      EmulatorArchive.FieldFormat.STRING,
-    //      RecordStartFrom.of(),
-    //      RecordEndAt.of(10)
-    //    );
-
-    emulator.replay(props, List.of(), List.of(), Map.of("t5", "t14"), false, true);
-    // Check Thread handling by parallel stream
-    //    final var map = Map.of("s1", "a", "s2", "b", "s3", "c");
-    //    map.keySet().parallelStream()
-    //        .forEach(
-    //            k -> {
-    //              System.out.println(Thread.currentThread().getName());
-    //              try {
-    //                Thread.sleep(1000);
-    //              } catch (InterruptedException e) {
-    //                throw new RuntimeException(e);
-    //              }
-    //              System.out.println(map.get(k));
-    //            });
+    var sr = SchemaRegistryContexts.load().get("local");
+    props.putAll(sr.properties());
+    var archive = emulator.record(
+      props,
+      List.of("t_sr_1"),
+      EmulatorArchive.FieldFormat.STRING,
+      EmulatorArchive.FieldFormat.SR_AVRO,
+      RecordStartFrom.of(),
+      RecordEndAt.of()
+    );
+    new SqliteStore(Path.of("test.db")).save(archive);
   }
 }
