@@ -172,13 +172,13 @@
                                 </goals>
                                 <phase>package</phase>
                             </execution>
-                            <execution>
+                            <!-- execution>
                                 <id>test-native</id>
                                 <goals>
                                     <goal>test</goal>
                                 </goals>
                                 <phase>test</phase>
-                            </execution>
+                            </execution -->
                         </executions>
                         <configuration>
                             <buildDirectory>bin/</buildDirectory>
