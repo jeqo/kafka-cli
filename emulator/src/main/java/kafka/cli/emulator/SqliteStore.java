@@ -4,6 +4,9 @@ import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class SqliteStore {
 
@@ -14,9 +17,13 @@ public class SqliteStore {
   }
 
   public EmulatorArchive load() {
+    return load(new Properties());
+  }
+
+  public EmulatorArchive load(Properties properties) {
     final var db = "jdbc:sqlite:" + archivePath.toAbsolutePath();
     try (final var conn = DriverManager.getConnection(db)) {
-      final var archive = EmulatorArchive.create();
+      final var archive = EmulatorArchive.with(properties);
       final var st = conn.createStatement();
       final var rs = st.executeQuery(
         """
@@ -47,9 +54,39 @@ public class SqliteStore {
           rs.getInt("key_int"),
           rs.getInt("value_int"),
           rs.getLong("key_long"),
-          rs.getLong("value_long")
+          rs.getLong("value_long"),
+          rs.getString("key_sr_avro"),
+          rs.getString("value_sr_avro")
         );
       }
+      final var schemaRs = st.executeQuery(
+        """
+                              SELECT *
+                              FROM schemas_v1
+                              ORDER BY topic ASC"""
+      );
+      Map<String, EmulatorArchive.RecordSchema> keySchemas = new HashMap<>();
+      Map<String, EmulatorArchive.RecordSchema> valueSchemas = new HashMap<>();
+      while (schemaRs.next()) {
+        String topic = schemaRs.getString("topic");
+        boolean isKey = schemaRs.getBoolean("is_key");
+        String schemaType = schemaRs.getString("schema_type");
+        String schemaString = schemaRs.getString("schema");
+
+        if (isKey) {
+          keySchemas.put(
+            topic,
+            new EmulatorArchive.RecordSchema(topic, true, schemaType, schemaString)
+          );
+        } else {
+          valueSchemas.put(
+            topic,
+            new EmulatorArchive.RecordSchema(topic, false, schemaType, schemaString)
+          );
+        }
+      }
+      archive.keySchemas = keySchemas;
+      archive.valueSchemas = valueSchemas;
       return archive;
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -84,14 +121,16 @@ public class SqliteStore {
                             value_sr_avro text
                         )"""
       );
-      st.executeUpdate("""
+      st.executeUpdate(
+        """
               CREATE TABLE IF NOT EXISTS schemas_v1
               (
                 topic text not null,
                 is_key boolean not null,
                 schema_type text not null,
                 schema text not null
-              )""");
+              )"""
+      );
       st.executeUpdate(
         """
                         CREATE INDEX IF NOT EXISTS records_v1_topic
@@ -108,12 +147,13 @@ public class SqliteStore {
                         ON records_v1 (offset)"""
       );
       st.executeUpdate(
-              """
+        """
                               CREATE INDEX IF NOT EXISTS schemas_v1_topic
                               ON schemas_v1 (topic)"""
       );
       // prepare schemas batch
-      final var schemaPs = conn.prepareStatement("""
+      final var schemaPs = conn.prepareStatement(
+        """
               INSERT INTO schemas_v1 (
                 topic,
                 is_key,
@@ -122,7 +162,8 @@ public class SqliteStore {
               )
               VALUES (
                 ?, ?, ?, ?
-              )""");
+              )"""
+      );
       archive.keySchemas.forEach((s, schema) -> {
         try {
           schemaPs.setString(1, schema.topic());

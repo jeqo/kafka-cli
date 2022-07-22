@@ -170,12 +170,13 @@ public class Cli implements Callable<Integer> {
     public Integer call() {
       try {
         final var store = new SqliteStore(archivePath);
+        final var properties = propertiesOption.load();
         // load archive
-        var archive = store.load();
+        var archive = store.load(properties);
         archive.setIncludeTopics(includes);
         archive.setExcludeTopics(excludes);
         final var emu = new KafkaReplayer();
-        emu.replay(propertiesOption.load(), archive, topicMap, noWait, dryRun);
+        emu.replay(properties, archive, topicMap, noWait, dryRun);
         return 0;
       } catch (Exception e) {
         e.printStackTrace();

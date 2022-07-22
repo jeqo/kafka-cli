@@ -10,6 +10,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import kafka.context.KafkaContexts;
+import kafka.context.sr.SchemaRegistryContexts;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -64,6 +65,8 @@ public class KafkaReplayer {
       }
     }
 
+    archive.registerSchemas(topicMap);
+
     final var size = archive.topicPartitions().size();
     var executor = Executors.newFixedThreadPool(size);
     var countDownLatch = new CountDownLatch(size);
@@ -71,19 +74,19 @@ public class KafkaReplayer {
       var rs = archive.records(topicPartition);
       final var finalProducer = producer;
       executor.submit(() -> {
-        long prevTime = System.currentTimeMillis();
-        // per record
-        for (var r : rs) {
-          // prepare record
-          final var topicName = topicMap.getOrDefault(r.topic(), r.topic());
-          var record = new ProducerRecord<>(
-            topicName,
-            r.partition(),
-            prevTime + r.afterMs(),
-            r.key(),
-            r.value()
-          );
-          try {
+        try {
+          long prevTime = System.currentTimeMillis();
+          // per record
+          for (var r : rs) {
+            // prepare record
+            final var topicName = topicMap.getOrDefault(r.topic(), r.topic());
+            var record = new ProducerRecord<>(
+              topicName,
+              r.partition(),
+              prevTime + r.afterMs(),
+              archive.key(topicName, r),
+              archive.value(topicName, r)
+            );
             // wait
             var wait = (prevTime + r.afterMs()) - System.currentTimeMillis();
             if (!noWait && wait > 0) {
@@ -108,9 +111,10 @@ public class KafkaReplayer {
               var meta = finalProducer.send(record).get();
               prevTime = meta.timestamp();
             } else prevTime = System.currentTimeMillis();
-          } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
           }
+        } catch (InterruptedException | ExecutionException e) {
+          e.printStackTrace();
+          throw new RuntimeException(e);
         }
         countDownLatch.countDown();
         LOG.info("Replay for {} finished", topicPartition);
@@ -121,12 +125,20 @@ public class KafkaReplayer {
     executor.shutdown();
   }
 
-  public static void main(String[] args) throws IOException, InterruptedException {
-    var archiveLoader = new SqliteStore(Path.of("test.db"));
+  public static void main(String[] args) throws IOException {
+    var store = new SqliteStore(Path.of("test.db"));
     var emulator = new KafkaReplayer();
     var context = KafkaContexts.load().get("local");
     var props = context.properties();
+    var sr = SchemaRegistryContexts.load().get("local");
+    props.putAll(sr.properties());
 
-    emulator.replay(props, archiveLoader.load(), Map.of("t5", "t14"), false, true);
+    final var archive = store.load(props);
+
+    try {
+      emulator.replay(props, archive, Map.of("t_sr_1", "t_sr_5"), false, false);
+    } catch (Throwable e) {
+      e.printStackTrace();
+    }
   }
 }
