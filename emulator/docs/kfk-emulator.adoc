@@ -1,9 +1,9 @@
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:revnumber: kafka-cli-emulator version 0.2.0
+:revnumber: kafka-cli-emulator version 0.3.0
 :manmanual: Kfk-emulator Manual
-:mansource: kafka-cli-emulator version 0.2.0
+:mansource: kafka-cli-emulator version 0.3.0
 :man-linkstyle: pass:[blue R < >]
 = kfk-emulator(1)
 

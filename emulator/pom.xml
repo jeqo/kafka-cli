@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>kafka-cli-emulator</artifactId>
-    <version>0.2.1-SNAPSHOT</version>
+    <version>0.3.0</version>
 
     <name>kafka-cli-emulator</name>
     <description>Kafka CLI: Emulator</description>
