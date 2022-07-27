@@ -18,8 +18,7 @@
     <url>https://github.com/jeqo/kafka-cli</url>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <sqlite.version>3.36.0.3</sqlite.version>
     </properties>
 
     <dependencies>
@@ -42,19 +41,11 @@
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
-            <version>3.36.0.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.graalvm.nativeimage</groupId>
-            <artifactId>svm</artifactId>
-            <version>22.0.0.2</version>
-            <scope>provided</scope>
+            <version>${sqlite.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.github.jeqo.kafka</groupId>
-            <artifactId>kafka-clients-graalvm</artifactId>
-            <version>0.2.0</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
         </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
@@ -63,8 +54,13 @@
         </dependency>
         <dependency>
             <groupId>io.github.jeqo.kafka</groupId>
-            <artifactId>avro-graalvm</artifactId>
-            <version>0.2.0</version>
+            <artifactId>kafka-clients-graalvm</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>svm</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -75,7 +71,6 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.23.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -162,7 +157,6 @@
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
-                        <version>0.9.7.1</version>
                         <extensions>true</extensions>
                         <executions>
                             <execution>
@@ -172,13 +166,6 @@
                                 </goals>
                                 <phase>package</phase>
                             </execution>
-                            <!-- execution>
-                                <id>test-native</id>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <phase>test</phase>
-                            </execution -->
                         </executions>
                         <configuration>
                             <buildDirectory>bin/</buildDirectory>
@@ -186,17 +173,19 @@
                             <mainClass>kafka.cli.emulator.Cli</mainClass>
                             <buildArgs>
                                 <buildArg>--no-fallback</buildArg>
-                                <buildArg>--allow-incomplete-classpath</buildArg>
+                                <buildArg>--link-at-build-time</buildArg>
                                 <buildArg>-H:AdditionalSecurityProviders=com.sun.security.sasl.Provider</buildArg>
                                 <buildArg>
                                     --initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator
                                 </buildArg>
                                 <buildArg>
-                                    --initialize-at-build-time=org.slf4j.LoggerFactory,org.slf4j.impl.StaticLoggerBinder,org.slf4j.impl.SimpleLogger,org.apache.kafka,kafka,net.jpountz.util.Utils,com.fasterxml.jackson,jdk.xml,javax.xml,com.sun.org.apache.xerces,org.yaml.snakeyaml
+                                    --initialize-at-build-time=${graalvm.at-build-time.slf4j},${graalvm.at-build-time.kafka},${graalvm.at-build-time.json}
                                 </buildArg>
                                 <buildArg>--enable-url-protocols=http</buildArg>
                                 <buildArg>--enable-url-protocols=https</buildArg>
-                                <buildArg>-H:ReflectionConfigurationFiles=../src/main/resources/META-INF/native-image/io.github.jeqo.kafka/kafka-clis/reflect-kafka-client.json,../src/main/resources/META-INF/native-image/io.github.jeqo.kafka/kafka-clis/reflect-schema-registry.json</buildArg>
+                                <buildArg>
+                                    -H:ReflectionConfigurationFiles=../src/main/resources/META-INF/native-image/io.github.jeqo.kafka/kafka-clis/reflect-kafka-client.json,../src/main/resources/META-INF/native-image/io.github.jeqo.kafka/kafka-clis/reflect-schema-registry.json
+                                </buildArg>
                                 <buildArg>-H:Log=registerResource:3</buildArg>
                                 <buildArg>
                                     -H:ResourceConfigurationFiles=../src/main/resources/META-INF/native-image/io.github.jeqo.kafka/kafka-clis/resource-config.json

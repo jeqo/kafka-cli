@@ -75,11 +75,6 @@
     "allDeclaredConstructors": true
   },
   {
-    "name": "io.confluent.kafka.schemaregistry.client.rest.entities.requests.ModeGetResponse",
-    "allDeclaredMethods": true,
-    "allDeclaredConstructors": true
-  },
-  {
     "name": "io.confluent.kafka.schemaregistry.client.rest.entities.requests.ModeUpdateRequest",
     "allDeclaredMethods": true,
     "allDeclaredConstructors": true
