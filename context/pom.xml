@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>kafka-cli-context</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1-SNAPSHOT</version>
 
     <name>kafka-cli-context</name>
     <description>Kafka: CLI: Context: Manage Kafka cluster contexts.</description>
