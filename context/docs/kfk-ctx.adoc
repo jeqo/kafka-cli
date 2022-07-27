@@ -1,9 +1,9 @@
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:revnumber: kafka-cli-context version 0.2.11
+:revnumber: kafka-cli-context version 0.3.0
 :manmanual: Kfk-ctx Manual
-:mansource: kafka-cli-context version 0.2.11
+:mansource: kafka-cli-context version 0.3.0
 :man-linkstyle: pass:[blue R < >]
 = kfk-ctx(1)
 
@@ -52,6 +52,9 @@ Manage Kafka connection as contexts.
 
 xref:kfk-ctx-create.adoc[*create*]::
   Register a Kafka context. Destination: ~/.kafka/kafka.json
+
+xref:kfk-ctx-rename.adoc[*rename*]::
+  Rename context. Destination: ~/.kafka/kafka.json
 
 xref:kfk-ctx-delete.adoc[*delete*]::
   Removes context. Destination: ~/.kafka/kafka.json

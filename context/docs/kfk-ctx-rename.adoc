@@ -5,54 +5,46 @@
 :manmanual: Kfk-ctx Manual
 :mansource: 
 :man-linkstyle: pass:[blue R < >]
-= kfk-ctx-sr(1)
+= kfk-ctx-rename(1)
 
 // end::picocli-generated-man-section-header[]
 
 // tag::picocli-generated-man-section-name[]
 == Name
 
-kfk-ctx-sr - Manage Schema Registry connection properties as contexts.
+kfk-ctx-rename - Rename context. Destination: ~/.kafka/kafka.json
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*kfk-ctx sr* [*-v*] [COMMAND]
+*kfk-ctx rename* _<oldName>_ _<newName>_
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Manage Schema Registry connection properties as contexts.
+Rename context. Destination: ~/.kafka/kafka.json
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
-== Options
-
-*-v*, *--verbose*::
-  
-
 // end::picocli-generated-man-section-options[]
 
 // tag::picocli-generated-man-section-arguments[]
+== Arguments
+
+_<oldName>_::
+  Existing Kafka context name. e.g. `local`
+
+_<newName>_::
+  Name Kafka context name. e.g. `local`
+
 // end::picocli-generated-man-section-arguments[]
 
 // tag::picocli-generated-man-section-commands[]
-== Commands
-
-xref:kfk-ctx-sr-create.adoc[*create*]::
-  Register context. Destination: ~/.kafka/schema-registry.json
-
-xref:kfk-ctx-sr-rename.adoc[*rename*]::
-  Rename context. Destination: ~/.kafka/schema-registry.json
-
-xref:kfk-ctx-sr-delete.adoc[*delete*]::
-  Removes context. Destination: ~/.kafka/schema-registry.json
-
 // end::picocli-generated-man-section-commands[]
 
 // tag::picocli-generated-man-section-exit-status[]
