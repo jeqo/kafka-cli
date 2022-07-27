@@ -8,7 +8,6 @@ import static kafka.cli.context.Cli.EnvCommand;
 import static kafka.cli.context.Cli.KCatCommand;
 import static kafka.cli.context.Cli.KFK_CTX_CMD;
 import static kafka.cli.context.Cli.PropertiesCommand;
-import static kafka.cli.context.Cli.SchemaRegistryContextsCommand;
 import static kafka.cli.context.Cli.TestCommand;
 
 import java.io.IOException;
@@ -27,12 +26,8 @@ import kafka.context.KafkaContexts;
 import kafka.context.auth.KafkaAuth;
 import kafka.context.auth.KafkaNoAuth;
 import kafka.context.auth.KafkaUsernamePasswordAuth;
-import kafka.context.sr.SchemaRegistryCluster;
-import kafka.context.sr.SchemaRegistryContext;
 import kafka.context.sr.SchemaRegistryContexts;
-import kafka.context.sr.auth.HttpNoAuth;
 import kafka.context.sr.auth.HttpUsernamePasswordAuth;
-import kafka.context.sr.auth.SchemaRegistryAuth;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
@@ -46,6 +41,7 @@ import picocli.CommandLine.Option;
   mixinStandardHelpOptions = true,
   subcommands = {
     CreateCommand.class,
+    Cli.RenameCommand.class,
     DeleteCommand.class,
     TestCommand.class,
     PropertiesCommand.class,
@@ -131,6 +127,47 @@ public class Cli implements Callable<Integer> {
         return 0;
       } catch (IllegalArgumentException e) {
         err.println("ERROR: " + e.getMessage());
+        return 1;
+      }
+    }
+  }
+
+  @CommandLine.Command(
+    name = "rename",
+    description = "Rename context. Destination: ~/.kafka/kafka.json"
+  )
+  static class RenameCommand implements Callable<Integer> {
+
+    @CommandLine.Parameters(
+      index = "0",
+      description = "Existing Kafka context name. e.g. `local`"
+    )
+    String oldName;
+
+    @CommandLine.Parameters(
+      index = "1",
+      description = "Name Kafka context name. e.g. `local`"
+    )
+    String newName;
+
+    @Override
+    public Integer call() throws Exception {
+      final var contexts = KafkaContexts.load();
+
+      if (contexts.has(oldName)) {
+        final var ctx = contexts.get(oldName);
+        contexts.rename(oldName, newName);
+        contexts.save();
+
+        out.printf(
+          "Kafka context `%s` with bootstrap servers: [%s] is renamed to `%s`.%n",
+          oldName,
+          ctx.cluster().bootstrapServers(),
+          newName
+        );
+        return 0;
+      } else {
+        out.printf("Kafka context `%s` is not registered.%n", oldName);
         return 1;
       }
     }
@@ -406,122 +443,6 @@ public class Cli implements Callable<Integer> {
         return 1;
       }
       return 0;
-    }
-  }
-
-  @CommandLine.Command(
-    name = "sr",
-    subcommands = {
-      SchemaRegistryContextsCommand.CreateCommand.class,
-      SchemaRegistryContextsCommand.DeleteCommand.class,
-    },
-    description = "Manage Schema Registry connection properties as contexts."
-  )
-  static class SchemaRegistryContextsCommand implements Callable<Integer> {
-
-    @Option(names = { "-v", "--verbose" })
-    boolean verbose;
-
-    @Override
-    public Integer call() throws Exception {
-      var contexts = SchemaRegistryContexts.load();
-      if (verbose) {
-        out.println(contexts.printNamesAndAddresses());
-      } else {
-        out.println(contexts.names());
-      }
-      return 0;
-    }
-
-    @CommandLine.Command(
-      name = "create",
-      description = "Register context. Destination: ~/.kafka/schema-registry.json"
-    )
-    static class CreateCommand implements Callable<Integer> {
-
-      @CommandLine.Parameters(index = "0", description = "Context name. e.g. `local`")
-      String name;
-
-      @CommandLine.Parameters(
-        index = "1",
-        description = "Schema Registry URLs. e.g. `http://localhost:8081`"
-      )
-      String urls;
-
-      @CommandLine.Option(
-        names = "--auth",
-        description = "Authentication type (default: ${DEFAULT-VALUE}). Valid values: ${COMPLETION-CANDIDATES}",
-        required = true,
-        defaultValue = "NO_AUTH"
-      )
-      SchemaRegistryAuth.AuthType authType;
-
-      @ArgGroup(exclusive = false)
-      UsernamePasswordOptions usernamePasswordOptions;
-
-      @Override
-      public Integer call() throws Exception {
-        var contexts = SchemaRegistryContexts.load();
-        try {
-          final SchemaRegistryAuth auth =
-            switch (authType) {
-              case BASIC_AUTH -> HttpUsernamePasswordAuth.build(
-                authType,
-                usernamePasswordOptions.username,
-                usernamePasswordOptions.password()
-              );
-              default -> new HttpNoAuth();
-            };
-          final var ctx = new SchemaRegistryContext(
-            name,
-            new SchemaRegistryCluster(urls, auth)
-          );
-
-          contexts.add(ctx);
-          contexts.save();
-
-          out.printf(
-            "Schema Registry context `%s` with URL(s): [%s] is saved.",
-            ctx.name(),
-            ctx.cluster().urls()
-          );
-          return 0;
-        } catch (IllegalArgumentException e) {
-          err.println("ERROR: " + e.getMessage());
-          return 1;
-        }
-      }
-    }
-
-    @CommandLine.Command(
-      name = "delete",
-      description = "Removes context. Destination: ~/.kafka/schema-registry.json"
-    )
-    static class DeleteCommand implements Callable<Integer> {
-
-      @CommandLine.Parameters(index = "0", description = "Context name. e.g. `local`")
-      String name;
-
-      @Override
-      public Integer call() throws Exception {
-        final var contexts = SchemaRegistryContexts.load();
-
-        if (contexts.has(name)) {
-          final var ctx = contexts.get(name);
-          contexts.remove(name);
-          contexts.save();
-
-          out.printf(
-            "Schema Registry context `%s` with URL(s): [%s] is deleted.%n",
-            ctx.name(),
-            ctx.cluster().urls()
-          );
-          return 0;
-        } else {
-          out.printf("Schema Registry Context %s is not registered.%n", name);
-          return 1;
-        }
-      }
     }
   }
 

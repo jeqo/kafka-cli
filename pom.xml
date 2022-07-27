@@ -31,14 +31,20 @@
         <picocli.version>4.6.3</picocli.version>
         <kafka.version>3.1.0</kafka.version>
         <confluent.version>7.0.1</confluent.version>
-        <kafka-context.version>0.4.0</kafka-context.version>
+        <graalvm.version>22.2.0</graalvm.version>
+        <kafka-libs.version>0.4.2</kafka-libs.version>
         <jackson.version>2.13.3</jackson.version>
         <slf4j.version>1.7.36</slf4j.version>
         <junit.version>5.8.2</junit.version>
+        <assertj.version>3.23.1</assertj.version>
 
         <jreleaser.git.root.search>true</jreleaser.git.root.search>
 
         <prettier-java.goal>write</prettier-java.goal>
+
+        <graalvm.at-build-time.slf4j>org.slf4j.LoggerFactory,org.slf4j.impl.StaticLoggerBinder,org.slf4j.impl.SimpleLogger,com.sun.org.slf4j</graalvm.at-build-time.slf4j>
+        <graalvm.at-build-time.kafka>org.apache.kafka,kafka,net.jpountz</graalvm.at-build-time.kafka>
+        <graalvm.at-build-time.json>com.fasterxml.jackson,jdk.xml,javax.xml,com.sun.org.apache.xerces,org.yaml.snakeyaml</graalvm.at-build-time.json>
 
         <app.name>${project.artifactId}</app.name>
         <app.version>${project.version}</app.version>
@@ -135,9 +141,24 @@
                 <version>${kafka.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-schema-registry-client</artifactId>
+                <version>${confluent.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.github.jeqo.kafka</groupId>
                 <artifactId>kafka-context</artifactId>
-                <version>${kafka-context.version}</version>
+                <version>${kafka-libs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.jeqo.kafka</groupId>
+                <artifactId>kafka-clients-graalvm</artifactId>
+                <version>${kafka-libs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.jeqo.kafka</groupId>
+                <artifactId>avro-graalvm</artifactId>
+                <version>${kafka-libs.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -156,9 +177,22 @@
             </dependency>
 
             <dependency>
+                <groupId>org.graalvm.nativeimage</groupId>
+                <artifactId>svm</artifactId>
+                <version>${graalvm.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
                 <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -275,10 +309,22 @@
                     <artifactId>git-commit-id-plugin</artifactId>
                     <version>${version.git.plugin}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.graalvm.buildtools</groupId>
+                    <artifactId>native-maven-plugin</artifactId>
+                    <version>0.9.13</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <propertiesEncoding>${project.build.sourceEncoding}</propertiesEncoding>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>com.hubspot.maven.plugins</groupId>
                 <artifactId>prettier-maven-plugin</artifactId>
@@ -383,7 +429,8 @@
                             <verbose>false</verbose>
                             <failOnNoGitDirectory>false</failOnNoGitDirectory>
                             <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                            <generateGitPropertiesFilename>${project.build.directory}/git.properties</generateGitPropertiesFilename>
+                            <generateGitPropertiesFilename>${project.build.directory}/git.properties
+                            </generateGitPropertiesFilename>
                             <dateFormat>yyyy-MM-dd'T'HH:mm:ssXXX</dateFormat>
                         </configuration>
                     </execution>
@@ -424,24 +471,6 @@
             </activation>
             <build>
                 <plugins>
-                    <!--          <plugin>-->
-                    <!--            <groupId>com.coderplus.maven.plugins</groupId>-->
-                    <!--            <artifactId>copy-rename-maven-plugin</artifactId>-->
-                    <!--            <version>1.0.1</version>-->
-                    <!--            <executions>-->
-                    <!--              <execution>-->
-                    <!--                <id>copy-license-file</id>-->
-                    <!--                <goals>-->
-                    <!--                  <goal>copy</goal>-->
-                    <!--                </goals>-->
-                    <!--                <phase>generate-sources</phase>-->
-                    <!--                <configuration>-->
-                    <!--                  <sourceFile>${session.executionRootDirectory}/LICENSE</sourceFile>-->
-                    <!--                  <destinationFile>${project.build.outputDirectory}/META-INF/LICENSE-${project.identifier}</destinationFile>-->
-                    <!--                </configuration>-->
-                    <!--              </execution>-->
-                    <!--            </executions>-->
-                    <!--          </plugin>-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
@@ -570,8 +599,8 @@
                                 <phase>generate-sources</phase>
                                 <configuration>
                                     <target>
-                                        <mkdir dir="${local.repository.path}/snapshot" />
-                                        <mkdir dir="${local.repository.path}/release" />
+                                        <mkdir dir="${local.repository.path}/snapshot"/>
+                                        <mkdir dir="${local.repository.path}/release"/>
                                     </target>
                                 </configuration>
                                 <goals>

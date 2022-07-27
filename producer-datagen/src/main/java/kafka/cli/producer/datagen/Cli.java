@@ -16,7 +16,7 @@ import kafka.cli.producer.datagen.command.PerfCommand;
 import kafka.cli.producer.datagen.command.ProduceOnceCommand;
 import kafka.cli.producer.datagen.command.SampleCommand;
 import kafka.context.KafkaContexts;
-import kafka.context.SchemaRegistryContexts;
+import kafka.context.sr.SchemaRegistryContexts;
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.IVersionProvider;
