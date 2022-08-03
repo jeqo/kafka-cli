@@ -20,12 +20,13 @@ kfk-emulator-record - Record topic events
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*kfk-emulator record* [*-k*=_<keyFormat>_] [*-v*=_<valueFormat>_] [*-t*=_<topics>_]...
-                    (*-c*=_<configPath>_ | [*--kafka*=_<kafkaContextName>_
-                    [*--sr*=_<srContextName>_]]) [*--start-from-ts*=_<fromTime>_ |
+*kfk-emulator record* [*-k*=_<keyFormat>_] [*-p*=_<pollTimeout>_] [*-v*=_<valueFormat>_]
+                    [*-t*=_<topics>_]... (*-c*=_<configPath>_ |
+                    [*--kafka*=_<kafkaContextName>_ [*--sr*=_<srContextName>_]])
+                    [*--start-from-ts*=_<fromTime>_ |
                     *--start-from-offsets*=_<String=Long>_
-                    [*--start-from-offsets*=_<String=Long>_]...]
-                    [*-n*=_<recordsPerPartition>_ | *--end-at-ts*=_<toTime>_ |
+                    [*--start-from-offsets*=_<String=Long>_]...] [[*--end-now*] |
+                    *-n*=_<recordsPerPartition>_ | *--end-at-ts*=_<toTime>_ |
                     *--end-at-offsets*=_<String=Long>_
                     [*--end-at-offsets*=_<String=Long>_]...] _<archivePath>_
 
@@ -49,16 +50,22 @@ Record topic events
   
 
 *--end-at-ts*=_<toTime>_::
+  Local date time format, e.g. 
+
+*--end-now*::
   
 
 *-k*, *--key-format*=_<keyFormat>_::
-  
+  Key format recorded, valid values: STRING, LONG, INTEGER, BYTES, SR_AVRO
 
 *--kafka*=_<kafkaContextName>_::
   Kafka context name
 
 *-n*, *--records*=_<recordsPerPartition>_::
   Per partition
+
+*-p*, *--poll-timeout*=_<pollTimeout>_::
+  Seconds to wait for data to arrive to topic partitions
 
 *--sr*=_<srContextName>_::
   Schema Registry context name
@@ -73,7 +80,7 @@ Record topic events
   
 
 *-v*, *--value-format*=_<valueFormat>_::
-  
+  Value format recorded, valid values: STRING, LONG, INTEGER, BYTES, SR_AVRO
 
 // end::picocli-generated-man-section-options[]
 
