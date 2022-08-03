@@ -65,10 +65,7 @@ public class Cli implements Callable<Integer> {
     @Option(names = { "--all-users" }, description = "Get all quotas related to users")
     boolean allUsers;
 
-    @Option(
-      names = { "--all-clients" },
-      description = "Get all quotas related to clients"
-    )
+    @Option(names = { "--all-clients" }, description = "Get all quotas related to clients")
     boolean allClients;
 
     @Option(names = { "--all-ips" }, description = "Get all quotas related to IPs")
@@ -124,24 +121,14 @@ public class Cli implements Callable<Integer> {
           final var userClientMap = userClients
             .keySet()
             .stream()
-            .collect(
-              Collectors.toMap(k -> k, k -> List.of(userClients.get(k).split(",")))
-            );
-          final var quotas = quotaManager.byUsers(
-            userClientMap,
-            clientIdDefault,
-            onlyMatch
-          );
+            .collect(Collectors.toMap(k -> k, k -> List.of(userClients.get(k).split(","))));
+          final var quotas = quotaManager.byUsers(userClientMap, clientIdDefault, onlyMatch);
           System.out.println(quotas.toJson());
         } else if (userDefault || !users.isEmpty()) {
           final var quotas = quotaManager.byUsers(users, userDefault, onlyMatch);
           System.out.println(quotas.toJson());
         } else if (clientIdDefault || !clientIds.isEmpty()) {
-          final var quotas = quotaManager.byClients(
-            clientIds,
-            clientIdDefault,
-            onlyMatch
-          );
+          final var quotas = quotaManager.byClients(clientIds, clientIdDefault, onlyMatch);
           System.out.println(quotas.toJson());
         } else if (ipDefault || !ips.isEmpty()) {
           final var quotas = quotaManager.byIps(ips, ipDefault, onlyMatch);
@@ -239,10 +226,7 @@ public class Cli implements Callable<Integer> {
     @Option(names = { "--ip" }, description = "Application's IP")
     Optional<String> ip;
 
-    @Option(
-      names = { "--all" },
-      description = "Use to remove all existing quotas for an application"
-    )
+    @Option(names = { "--all" }, description = "Use to remove all existing quotas for an application")
     boolean all;
 
     @Option(names = { "--produce-rate" }, description = "Write bandwidth")
@@ -264,27 +248,15 @@ public class Cli implements Callable<Integer> {
         final var quotaManager = new QuotaManager(kafkaAdmin);
         if (all) {
           if (userDefault || user.isPresent()) {
-            final var quotas = quotaManager.byUsers(
-              user.map(List::of).orElse(List.of()),
-              userDefault,
-              true
-            );
+            final var quotas = quotaManager.byUsers(user.map(List::of).orElse(List.of()), userDefault, true);
             System.out.println(quotas.toJson());
             quotaManager.delete(quotas);
           } else if (clientIdDefault || clientId.isPresent()) {
-            final var quotas = quotaManager.byClients(
-              clientId.map(List::of).orElse(List.of()),
-              clientIdDefault,
-              true
-            );
+            final var quotas = quotaManager.byClients(clientId.map(List::of).orElse(List.of()), clientIdDefault, true);
             System.out.println(quotas.toJson());
             quotaManager.delete(quotas);
           } else if (ipDefault || ip.isPresent()) {
-            final var quotas = quotaManager.byIps(
-              ip.map(List::of).orElse(List.of()),
-              ipDefault,
-              true
-            );
+            final var quotas = quotaManager.byIps(ip.map(List::of).orElse(List.of()), ipDefault, true);
             System.out.println(quotas.toJson());
             quotaManager.delete(quotas);
           }
@@ -299,9 +271,7 @@ public class Cli implements Callable<Integer> {
               writeBandwidth ? Optional.of(NetworkBandwidth.empty()) : Optional.empty(),
               readBandwidth ? Optional.of(NetworkBandwidth.empty()) : Optional.empty(),
               requestRate ? Optional.of(RequestRate.empty()) : Optional.empty(),
-              connectionRate
-                ? Optional.of(ConnectionCreationRate.empty())
-                : Optional.empty()
+              connectionRate ? Optional.of(ConnectionCreationRate.empty()) : Optional.empty()
             )
           );
           quotaManager.delete(quota);
@@ -315,8 +285,7 @@ public class Cli implements Callable<Integer> {
 
     @CommandLine.Option(
       names = { "-c", "--config" },
-      description = "Client configuration properties file." +
-      "Must include connection to Kafka and Schema Registry"
+      description = "Client configuration properties file." + "Must include connection to Kafka and Schema Registry"
     )
     Optional<Path> configPath;
 
@@ -331,9 +300,7 @@ public class Cli implements Callable<Integer> {
             p.load(Files.newInputStream(path));
             return p;
           } catch (Exception e) {
-            throw new IllegalArgumentException(
-              "ERROR: properties file at %s is failing to load".formatted(path)
-            );
+            throw new IllegalArgumentException("ERROR: properties file at %s is failing to load".formatted(path));
           }
         })
         .orElseGet(() -> {
@@ -361,10 +328,7 @@ public class Cli implements Callable<Integer> {
 
         return props;
       } else {
-        err.printf(
-          "ERROR: Kafka context `%s` not found. Check that context already exist.%n",
-          kafkaContextName
-        );
+        err.printf("ERROR: Kafka context `%s` not found. Check that context already exist.%n", kafkaContextName);
         return null;
       }
     }
@@ -374,19 +338,14 @@ public class Cli implements Callable<Integer> {
 
     @Override
     public String[] getVersion() throws IOException {
-      final var url =
-        VersionProviderWithConfigProvider.class.getClassLoader()
-          .getResource("cli.properties");
+      final var url = VersionProviderWithConfigProvider.class.getClassLoader().getResource("cli.properties");
       if (url == null) {
         return new String[] { "No cli.properties file found in the classpath." };
       }
       final var properties = new Properties();
       properties.load(url.openStream());
       return new String[] {
-        properties.getProperty("appName") +
-        " version " +
-        properties.getProperty("appVersion") +
-        "",
+        properties.getProperty("appName") + " version " + properties.getProperty("appVersion") + "",
         "Built: " + properties.getProperty("appBuildTime"),
       };
     }

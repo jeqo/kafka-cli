@@ -45,10 +45,7 @@ public final class Helper {
     final var builder = Output.newBuilder(topics);
     final var describeClusterResult = adminClient.describeCluster();
 
-    final var descriptions = adminClient
-      .describeTopics(builder.names())
-      .allTopicNames()
-      .get();
+    final var descriptions = adminClient.describeTopics(builder.names()).allTopicNames().get();
 
     final var startOffsetRequest = new HashMap<TopicPartition, OffsetSpec>();
     final var endOffsetRequest = new HashMap<TopicPartition, OffsetSpec>();
@@ -70,10 +67,7 @@ public final class Helper {
     final var startOffsets = adminClient.listOffsets(startOffsetRequest).all().get();
     final var endOffsets = adminClient.listOffsets(endOffsetRequest).all().get();
 
-    final var configs = adminClient
-      .describeConfigs(builder.configResources())
-      .all()
-      .get();
+    final var configs = adminClient.describeConfigs(builder.configResources()).all().get();
 
     final var srSubjects = srClient.map(sr -> {
       try {

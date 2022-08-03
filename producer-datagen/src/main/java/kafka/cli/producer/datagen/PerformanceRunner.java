@@ -66,10 +66,7 @@ public class PerformanceRunner {
       producer.send(record, cb);
 
       currentTransactionSize++;
-      if (
-        config.transactionsEnabled() &&
-        config.transactionDurationMs() <= (sendStartMs - transactionStartTime)
-      ) {
+      if (config.transactionsEnabled() && config.transactionDurationMs() <= (sendStartMs - transactionStartTime)) {
         producer.commitTransaction();
         currentTransactionSize = 0;
       }
@@ -79,9 +76,7 @@ public class PerformanceRunner {
       }
     }
 
-    if (
-      config.transactionsEnabled() && currentTransactionSize != 0
-    ) producer.commitTransaction();
+    if (config.transactionsEnabled() && currentTransactionSize != 0) producer.commitTransaction();
 
     if (!config.shouldPrintMetrics()) {
       /* print final results */
@@ -118,16 +113,12 @@ public class PerformanceRunner {
       }
       String doubleOutputFormat = "%-" + maxLengthOfDisplayName + "s : %.3f";
       String defaultOutputFormat = "%-" + maxLengthOfDisplayName + "s : %s";
-      System.out.printf(
-        "\n%-" + maxLengthOfDisplayName + "s   %s%n",
-        "Metric Name",
-        "Value"
-      );
+      System.out.printf("\n%-" + maxLengthOfDisplayName + "s   %s%n", "Metric Name", "Value");
 
       for (Map.Entry<String, Object> entry : sortedMetrics.entrySet()) {
         String outputFormat;
-        if (entry.getValue() instanceof Double) outputFormat =
-          doubleOutputFormat; else outputFormat = defaultOutputFormat;
+        if (entry.getValue() instanceof Double) outputFormat = doubleOutputFormat; else outputFormat =
+          defaultOutputFormat;
         System.out.printf((outputFormat) + "%n", entry.getKey(), entry.getValue());
       }
     }
@@ -148,19 +139,8 @@ public class PerformanceRunner {
       return new Config(records, topicName, false, -1L, shouldPrintMetrics);
     }
 
-    static Config create(
-      long records,
-      String topicName,
-      long transactionDuration,
-      boolean shouldPrintMetrics
-    ) {
-      return new Config(
-        records,
-        topicName,
-        true,
-        transactionDuration,
-        shouldPrintMetrics
-      );
+    static Config create(long records, String topicName, long transactionDuration, boolean shouldPrintMetrics) {
+      return new Config(records, topicName, true, transactionDuration, shouldPrintMetrics);
     }
 
     static Config create(long records, String topicName, long transactionDuration) {

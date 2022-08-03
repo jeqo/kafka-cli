@@ -15,28 +15,8 @@ class EmulatorArchiveTest {
     var tp1 = new TopicPartition("t1", 0);
     var tp2 = new TopicPartition("t2", 0);
     var archive = EmulatorArchive.create();
-    final var r1 = new EmulatorRecord(
-      "t1",
-      0,
-      0L,
-      0L,
-      0L,
-      FieldFormat.BYTES,
-      null,
-      FieldFormat.BYTES,
-      null
-    );
-    final var r2 = new EmulatorRecord(
-      "t2",
-      0,
-      0L,
-      0L,
-      0L,
-      FieldFormat.BYTES,
-      null,
-      FieldFormat.BYTES,
-      null
-    );
+    final var r1 = new EmulatorRecord("t1", 0, 0L, 0L, 0L, FieldFormat.BYTES, null, FieldFormat.BYTES, null);
+    final var r2 = new EmulatorRecord("t2", 0, 0L, 0L, 0L, FieldFormat.BYTES, null, FieldFormat.BYTES, null);
     archive.append(tp1, r1);
     archive.append(tp2, r2);
 
@@ -51,28 +31,8 @@ class EmulatorArchiveTest {
     var tp1 = new TopicPartition("t1", 0);
     var tp2 = new TopicPartition("t2", 0);
     var archive = EmulatorArchive.create();
-    final var r1 = new EmulatorRecord(
-      "t1",
-      0,
-      0L,
-      0L,
-      0L,
-      FieldFormat.BYTES,
-      null,
-      FieldFormat.BYTES,
-      null
-    );
-    final var r2 = new EmulatorRecord(
-      "t2",
-      0,
-      0L,
-      0L,
-      0L,
-      FieldFormat.BYTES,
-      null,
-      FieldFormat.BYTES,
-      null
-    );
+    final var r1 = new EmulatorRecord("t1", 0, 0L, 0L, 0L, FieldFormat.BYTES, null, FieldFormat.BYTES, null);
+    final var r2 = new EmulatorRecord("t2", 0, 0L, 0L, 0L, FieldFormat.BYTES, null, FieldFormat.BYTES, null);
     archive.append(tp1, r1);
     archive.append(tp2, r2);
 
@@ -87,28 +47,8 @@ class EmulatorArchiveTest {
     var tp1 = new TopicPartition("t1", 0);
     var tp2 = new TopicPartition("t2", 0);
     var archive = EmulatorArchive.create();
-    final var r1 = new EmulatorRecord(
-      "t1",
-      0,
-      0L,
-      0L,
-      0L,
-      FieldFormat.BYTES,
-      null,
-      FieldFormat.BYTES,
-      null
-    );
-    final var r2 = new EmulatorRecord(
-      "t2",
-      0,
-      0L,
-      0L,
-      0L,
-      FieldFormat.BYTES,
-      null,
-      FieldFormat.BYTES,
-      null
-    );
+    final var r1 = new EmulatorRecord("t1", 0, 0L, 0L, 0L, FieldFormat.BYTES, null, FieldFormat.BYTES, null);
+    final var r2 = new EmulatorRecord("t2", 0, 0L, 0L, 0L, FieldFormat.BYTES, null, FieldFormat.BYTES, null);
     archive.append(tp1, r1);
     archive.append(tp2, r2);
 

@@ -21,14 +21,8 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.config.ConfigResource;
 
-public record Output(
-  KafkaCluster kafkaCluster,
-  Map<String, Topic> topics,
-  SchemaRegistry schemaRegistry
-) {
-  static ObjectMapper json = new ObjectMapper()
-    .registerModule(new Jdk8Module())
-    .registerModule(new JavaTimeModule());
+public record Output(KafkaCluster kafkaCluster, Map<String, Topic> topics, SchemaRegistry schemaRegistry) {
+  static ObjectMapper json = new ObjectMapper().registerModule(new Jdk8Module()).registerModule(new JavaTimeModule());
 
   public static Builder newBuilder(List<String> topicNames) {
     return new Builder(topicNames);
@@ -77,10 +71,7 @@ public record Output(
     }
 
     List<ConfigResource> configResources() {
-      return names
-        .stream()
-        .map(t -> new ConfigResource(ConfigResource.Type.TOPIC, t))
-        .toList();
+      return names.stream().map(t -> new ConfigResource(ConfigResource.Type.TOPIC, t)).toList();
     }
 
     Output build() {
@@ -124,9 +115,7 @@ public record Output(
       return this;
     }
 
-    public Builder withConfigs(
-      Map<ConfigResource, org.apache.kafka.clients.admin.Config> configs
-    ) {
+    public Builder withConfigs(Map<ConfigResource, org.apache.kafka.clients.admin.Config> configs) {
       final var map = new HashMap<String, Config>(configs.size());
       for (var configResource : configResources()) {
         var config = configs.get(configResource);
@@ -136,9 +125,7 @@ public record Output(
       return this;
     }
 
-    public Builder withStartOffsets(
-      Map<TopicPartition, ListOffsetsResultInfo> startOffsets
-    ) {
+    public Builder withStartOffsets(Map<TopicPartition, ListOffsetsResultInfo> startOffsets) {
       this.startOffsets = startOffsets;
       return this;
     }
@@ -156,11 +143,7 @@ public record Output(
     public Builder withSchemaRegistrySubjects(Map<String, SchemaMetadata> srm) {
       this.srSubjects = new HashMap<>(srm.size());
       srm.forEach((subject, schemaMetadata) -> {
-        Subject s = new Subject(
-          schemaMetadata.getId(),
-          schemaMetadata.getSchemaType(),
-          schemaMetadata.getVersion()
-        );
+        Subject s = new Subject(schemaMetadata.getId(), schemaMetadata.getSchemaType(), schemaMetadata.getVersion());
         srSubjects.put(subject, s);
       });
       return this;
@@ -259,11 +242,7 @@ public record Output(
 
     public record Offset(long offset, long timestamp, Optional<Integer> leaderEpoch) {
       static Offset from(ListOffsetsResultInfo resultInfo) {
-        return new Offset(
-          resultInfo.offset(),
-          resultInfo.timestamp(),
-          resultInfo.leaderEpoch()
-        );
+        return new Offset(resultInfo.offset(), resultInfo.timestamp(), resultInfo.leaderEpoch());
       }
 
       public JsonNode jsonNode() {
@@ -295,12 +274,7 @@ public record Output(
 
   public record Config(Map<String, Entry> entries) {
     public static Config from(org.apache.kafka.clients.admin.Config config) {
-      return new Config(
-        config
-          .entries()
-          .stream()
-          .collect(Collectors.toMap(ConfigEntry::name, Entry::from))
-      );
+      return new Config(config.entries().stream().collect(Collectors.toMap(ConfigEntry::name, Entry::from)));
     }
 
     public JsonNode jsonNode() {
@@ -326,10 +300,7 @@ public record Output(
           e.isSensitive(),
           e.isDefault(),
           e.documentation(),
-          e
-            .synonyms()
-            .stream()
-            .collect(Collectors.toMap(ConfigSynonym::name, ConfigSynonym::value))
+          e.synonyms().stream().collect(Collectors.toMap(ConfigSynonym::name, ConfigSynonym::value))
         );
       }
 

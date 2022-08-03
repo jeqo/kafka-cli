@@ -18,18 +18,10 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "interval", description = "run producer with interval")
 public class IntervalCommand implements Callable<Integer> {
 
-  @CommandLine.Option(
-    names = { "-t", "--topic" },
-    description = "target Kafka topic name",
-    required = true
-  )
+  @CommandLine.Option(names = { "-t", "--topic" }, description = "target Kafka topic name", required = true)
   String topicName;
 
-  @CommandLine.Option(
-    names = { "-n", "--num-records" },
-    description = "Number of records to produce",
-    required = true
-  )
+  @CommandLine.Option(names = { "-n", "--num-records" }, description = "Number of records to produce", required = true)
   long numRecords;
 
   @CommandLine.Option(
@@ -42,20 +34,13 @@ public class IntervalCommand implements Callable<Integer> {
   @CommandLine.ArgGroup(multiplicity = "1")
   Cli.PropertiesOption propertiesOption;
 
-  @CommandLine.Option(
-    names = { "-f", "--format" },
-    description = "Record value format",
-    defaultValue = "JSON"
-  )
+  @CommandLine.Option(names = { "-f", "--format" }, description = "Record value format", defaultValue = "JSON")
   PayloadGenerator.Format format;
 
   @CommandLine.ArgGroup(multiplicity = "1")
   Cli.SchemaSourceOption schemaSource;
 
-  @CommandLine.Option(
-    names = { "-p", "--prop" },
-    description = "Additional client properties"
-  )
+  @CommandLine.Option(names = { "-p", "--prop" }, description = "Additional client properties")
   Map<String, String> additionalProperties = new HashMap<>();
 
   int reportingIntervalMs = 5_000;
@@ -67,14 +52,9 @@ public class IntervalCommand implements Callable<Integer> {
     producerConfig.putAll(additionalProperties);
 
     var keySerializer = new StringSerializer();
-    Serializer<Object> valueSerializer = PayloadGenerator.valueSerializer(
-      format,
-      producerConfig
-    );
+    Serializer<Object> valueSerializer = PayloadGenerator.valueSerializer(format, producerConfig);
 
-    try (
-      var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)
-    ) {
+    try (var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)) {
       final var payloadGenerator = new PayloadGenerator(
         new PayloadGenerator.Config(
           Optional.empty(),

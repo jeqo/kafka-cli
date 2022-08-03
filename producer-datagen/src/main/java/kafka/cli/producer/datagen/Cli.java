@@ -29,17 +29,13 @@ import picocli.CommandLine.Option;
   descriptionHeading = "Kafka CLI - Producer Datagen",
   description = "Kafka Producer with Data generation",
   subcommands = {
-    PerfCommand.class,
-    IntervalCommand.class,
-    ProduceOnceCommand.class,
-    SampleCommand.class,
-    ListTopicsCommand.class,
+    PerfCommand.class, IntervalCommand.class, ProduceOnceCommand.class, SampleCommand.class, ListTopicsCommand.class,
   }
 )
 public class Cli implements Callable<Integer> {
 
   public static void main(String[] args) {
-    int exitCode = new CommandLine(new Cli()).execute(args);
+    int exitCode = new CommandLine(new Cli()).setCaseInsensitiveEnumValuesAllowed(true).execute(args);
     System.exit(exitCode);
   }
 
@@ -53,8 +49,7 @@ public class Cli implements Callable<Integer> {
 
     @CommandLine.Option(
       names = { "-c", "--config" },
-      description = "Client configuration properties file." +
-      "Must include connection to Kafka and Schema Registry"
+      description = "Client configuration properties file." + "Must include connection to Kafka and Schema Registry"
     )
     Optional<Path> configPath;
 
@@ -69,9 +64,7 @@ public class Cli implements Callable<Integer> {
             p.load(Files.newInputStream(path));
             return p;
           } catch (Exception e) {
-            throw new IllegalArgumentException(
-              "ERROR: properties file at %s is failing to load".formatted(path)
-            );
+            throw new IllegalArgumentException("ERROR: properties file at %s is failing to load".formatted(path));
           }
         })
         .orElseGet(() -> {
@@ -108,19 +101,13 @@ public class Cli implements Callable<Integer> {
             final var srProps = sr.properties();
             props.putAll(srProps);
           } else {
-            err.printf(
-              "WARN: Schema Registry context `%s` not found. Proceeding without it.%n",
-              srName
-            );
+            err.printf("WARN: Schema Registry context `%s` not found. Proceeding without it.%n", srName);
           }
         }
 
         return props;
       } else {
-        err.printf(
-          "ERROR: Kafka context `%s` not found. Check that context already exist.%n",
-          kafkaContextName
-        );
+        err.printf("ERROR: Kafka context `%s` not found. Check that context already exist.%n", kafkaContextName);
         return null;
       }
     }
@@ -128,16 +115,10 @@ public class Cli implements Callable<Integer> {
 
   public static class SchemaSourceOption {
 
-    @Option(
-      names = { "-q", "--quickstart" },
-      description = "Quickstart name. Valid values:  ${COMPLETION-CANDIDATES}"
-    )
+    @Option(names = { "-q", "--quickstart" }, description = "Quickstart name. Valid values:  ${COMPLETION-CANDIDATES}")
     public Optional<PayloadGenerator.Quickstart> quickstart;
 
-    @Option(
-      names = { "-s", "--schema" },
-      description = "Path to Avro schema to use for generating records."
-    )
+    @Option(names = { "-s", "--schema" }, description = "Path to Avro schema to use for generating records.")
     public Optional<Path> schemaPath;
   }
 
@@ -145,19 +126,14 @@ public class Cli implements Callable<Integer> {
 
     @Override
     public String[] getVersion() throws IOException {
-      final var url =
-        VersionProviderWithConfigProvider.class.getClassLoader()
-          .getResource("cli.properties");
+      final var url = VersionProviderWithConfigProvider.class.getClassLoader().getResource("cli.properties");
       if (url == null) {
         return new String[] { "No cli.properties file found in the classpath." };
       }
       final var properties = new Properties();
       properties.load(url.openStream());
       return new String[] {
-        properties.getProperty("appName") +
-        " version " +
-        properties.getProperty("appVersion") +
-        "",
+        properties.getProperty("appName") + " version " + properties.getProperty("appVersion") + "",
         "Built: " + properties.getProperty("appBuildTime"),
       };
     }

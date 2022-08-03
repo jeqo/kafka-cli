@@ -30,11 +30,11 @@ public class KafkaRecorder {
    * <p>Based on the start and end conditions, start a consumer and poll records per partition.
    * Transform into archive records and append to the archive. Once the end condition is given, the
    * results are flushed into the zip archive files.
-   *
    */
   public EmulatorArchive record(
     Properties properties,
     List<String> topics,
+    int pollTimeoutSeconds,
     EmulatorArchive.FieldFormat keyFormat,
     EmulatorArchive.FieldFormat valueFormat,
     RecordStartFrom startFrom,
@@ -55,10 +55,7 @@ public class KafkaRecorder {
     for (var topic : topics) {
       var partitionsInfo = listTopics.get(topic);
       topicPartitions.addAll(
-        partitionsInfo
-          .stream()
-          .map(info -> new TopicPartition(info.topic(), info.partition()))
-          .toList()
+        partitionsInfo.stream().map(info -> new TopicPartition(info.topic(), info.partition())).toList()
       );
     }
     consumer.assign(topicPartitions);
@@ -70,9 +67,7 @@ public class KafkaRecorder {
       final var offsets = consumer.offsetsForTimes(
         topicPartitions.stream().collect(Collectors.toMap(tp -> tp, tp -> ts))
       );
-      offsets.forEach((tp, offsetAndTimestamp) ->
-        consumer.seek(tp, offsetAndTimestamp.offset())
-      );
+      offsets.forEach((tp, offsetAndTimestamp) -> consumer.seek(tp, offsetAndTimestamp.offset()));
     } else {
       consumer.seekToBeginning(topicPartitions);
     }
@@ -82,7 +77,7 @@ public class KafkaRecorder {
     while (!allDone) {
       // set offsets to
       // break by topic-partition
-      var records = consumer.poll(Duration.ofSeconds(5));
+      var records = consumer.poll(Duration.ofSeconds(pollTimeoutSeconds));
       for (var partition : records.partitions()) {
         if (done.get(partition)) break;
         // start: per partition
@@ -92,6 +87,7 @@ public class KafkaRecorder {
           var latestTimestamp = latestTimestamps.getOrDefault(partition, -1L);
           final var currentTimestamp = record.timestamp();
           if (currentTimestamp >= endTime) {
+            if (endAt.now()) done.put(partition, true);
             break;
           }
           final long afterMs;
@@ -103,6 +99,7 @@ public class KafkaRecorder {
           // append to topic-partition file
           archive.append(partition, record, afterMs);
           latestTimestamps.put(partition, currentTimestamp);
+
           if (isDone(partition, archive, endAt)) {
             done.put(partition, true);
             break;
@@ -132,7 +129,7 @@ public class KafkaRecorder {
       }
 
       if (!endAt.offsets.isEmpty()) {
-        return archive.oldestOffsets(tp) >= endAt.offsets().get(tp);
+        if (endAt.offsets.containsKey(tp)) return archive.oldestOffsets(tp) >= endAt.offsets().get(tp);
       }
 
       if (endAt.timestamp().isPresent()) {
@@ -142,26 +139,21 @@ public class KafkaRecorder {
     return false;
   }
 
-  record RecordStartFrom(
-    boolean beginning,
-    Map<TopicPartition, Long> offsets,
-    OptionalLong timestamp
-  ) {
+  record RecordStartFrom(boolean beginning, Map<TopicPartition, Long> offsets, OptionalLong timestamp) {
     public static RecordStartFrom of() {
       return new RecordStartFrom(true, Map.of(), OptionalLong.empty());
     }
+
     public static RecordStartFrom of(Map<TopicPartition, Long> offsets) {
       return new RecordStartFrom(true, offsets, OptionalLong.empty());
     }
+
     public static RecordStartFrom of(Map<TopicPartition, Long> offsets, long timestamp) {
       return new RecordStartFrom(false, offsets, OptionalLong.of(timestamp));
     }
+
     public static RecordStartFrom of(Instant timestamp) {
-      return new RecordStartFrom(
-        false,
-        Map.of(),
-        OptionalLong.of(timestamp.toEpochMilli())
-      );
+      return new RecordStartFrom(false, Map.of(), OptionalLong.of(timestamp.toEpochMilli()));
     }
   }
 
@@ -172,24 +164,19 @@ public class KafkaRecorder {
     OptionalLong timestamp
   ) {
     public static RecordEndAt of() {
-      return new RecordEndAt(true, OptionalInt.empty(), Map.of(), OptionalLong.empty());
+      return new RecordEndAt(false, OptionalInt.empty(), Map.of(), OptionalLong.empty());
     }
+
+    public static RecordEndAt of(boolean endNow) {
+      return new RecordEndAt(endNow, OptionalInt.empty(), Map.of(), OptionalLong.empty());
+    }
+
     public static RecordEndAt of(int recordsPerPartition) {
-      return new RecordEndAt(
-        false,
-        OptionalInt.of(recordsPerPartition),
-        Map.of(),
-        OptionalLong.empty()
-      );
+      return new RecordEndAt(false, OptionalInt.of(recordsPerPartition), Map.of(), OptionalLong.empty());
     }
 
     public static RecordEndAt of(Instant timestamp) {
-      return new RecordEndAt(
-        false,
-        OptionalInt.empty(),
-        Map.of(),
-        OptionalLong.of(timestamp.toEpochMilli())
-      );
+      return new RecordEndAt(false, OptionalInt.empty(), Map.of(), OptionalLong.of(timestamp.toEpochMilli()));
     }
 
     public static RecordEndAt of(Map<TopicPartition, Long> offsets) {
@@ -206,6 +193,7 @@ public class KafkaRecorder {
     var archive = emulator.record(
       props,
       List.of("t_sr_1"),
+      5,
       EmulatorArchive.FieldFormat.STRING,
       EmulatorArchive.FieldFormat.SR_AVRO,
       RecordStartFrom.of(),

@@ -16,11 +16,7 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "once", description = "produce once")
 public class ProduceOnceCommand implements Callable<Integer> {
 
-  @CommandLine.Option(
-    names = { "-t", "--topic" },
-    description = "target Kafka topic name",
-    required = true
-  )
+  @CommandLine.Option(names = { "-t", "--topic" }, description = "target Kafka topic name", required = true)
   String topicName;
 
   @CommandLine.ArgGroup(multiplicity = "1")
@@ -29,17 +25,10 @@ public class ProduceOnceCommand implements Callable<Integer> {
   @CommandLine.ArgGroup(multiplicity = "1")
   Cli.SchemaSourceOption schemaSource;
 
-  @CommandLine.Option(
-    names = { "-f", "--format" },
-    description = "Record value format",
-    defaultValue = "JSON"
-  )
+  @CommandLine.Option(names = { "-f", "--format" }, description = "Record value format", defaultValue = "JSON")
   PayloadGenerator.Format format;
 
-  @CommandLine.Option(
-    names = { "-p", "--prop" },
-    description = "Additional client properties"
-  )
+  @CommandLine.Option(names = { "-p", "--prop" }, description = "Additional client properties")
   Map<String, String> additionalProperties = new HashMap<>();
 
   @Override
@@ -48,22 +37,11 @@ public class ProduceOnceCommand implements Callable<Integer> {
     if (producerConfig == null) return 1;
     producerConfig.putAll(additionalProperties);
     var keySerializer = new StringSerializer();
-    Serializer<Object> valueSerializer = PayloadGenerator.valueSerializer(
-      format,
-      producerConfig
-    );
+    Serializer<Object> valueSerializer = PayloadGenerator.valueSerializer(format, producerConfig);
 
-    try (
-      var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)
-    ) {
+    try (var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)) {
       var pg = new PayloadGenerator(
-        new PayloadGenerator.Config(
-          Optional.empty(),
-          schemaSource.quickstart,
-          schemaSource.schemaPath,
-          10,
-          format
-        )
+        new PayloadGenerator.Config(Optional.empty(), schemaSource.quickstart, schemaSource.schemaPath, 10, format)
       );
 
       out.println("Avro Schema used to generate records:");

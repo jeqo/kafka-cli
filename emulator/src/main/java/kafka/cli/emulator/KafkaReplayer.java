@@ -39,8 +39,7 @@ public class KafkaReplayer {
     var valueSerializer = new ByteArraySerializer();
     properties.put("acks", "1");
     KafkaProducer<byte[], byte[]> producer = null;
-    if (!dryRun) producer =
-      new KafkaProducer<>(properties, keySerializer, valueSerializer);
+    if (!dryRun) producer = new KafkaProducer<>(properties, keySerializer, valueSerializer);
     // per partition
     final var topicPartitionNumber = archive.topicPartitionNumber();
     // prepare topics
@@ -51,11 +50,7 @@ public class KafkaReplayer {
         for (var t : topicPartitionNumber.keySet()) {
           final var topicName = topicMap.getOrDefault(t, t);
           if (!topics.contains(topicName)) {
-            final var newTopic = new NewTopic(
-              topicName,
-              Optional.of(topicPartitionNumber.get(t)),
-              Optional.empty()
-            );
+            final var newTopic = new NewTopic(topicName, Optional.of(topicPartitionNumber.get(t)), Optional.empty());
             newTopics.add(newTopic);
           }
         }
@@ -90,13 +85,7 @@ public class KafkaReplayer {
             // wait
             var wait = (prevTime + r.afterMs()) - System.currentTimeMillis();
             if (!noWait && wait > 0) {
-              LOG.info(
-                "{}:{}:{}: waiting {} ms.",
-                topicName,
-                r.partition(),
-                r.offset(),
-                r.afterMs()
-              );
+              LOG.info("{}:{}:{}: waiting {} ms.", topicName, r.partition(), r.offset(), r.afterMs());
               Thread.sleep(r.afterMs());
             } else {
               LOG.info(

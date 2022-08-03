@@ -30,14 +30,12 @@ import picocli.CommandLine.Option;
                 """,
   versionProvider = Cli.VersionProviderWithConfigProvider.class,
   mixinStandardHelpOptions = true,
-  subcommands = {
-    Cli.InitCommand.class, Cli.RecordCommand.class, Cli.ReplayCommand.class,
-  }
+  subcommands = { Cli.InitCommand.class, Cli.RecordCommand.class, Cli.ReplayCommand.class }
 )
 public class Cli implements Callable<Integer> {
 
   public static void main(String[] args) {
-    int exitCode = new CommandLine(new Cli()).execute(args);
+    int exitCode = new CommandLine(new Cli()).setCaseInsensitiveEnumValuesAllowed(true).execute(args);
     System.exit(exitCode);
   }
 
@@ -76,12 +74,9 @@ public class Cli implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(
-    name = "record",
-    description = """
+  @CommandLine.Command(name = "record", description = """
                 Record topic events
-                """
-  )
+                """)
   static class RecordCommand implements Callable<Integer> {
 
     @CommandLine.ArgGroup(multiplicity = "1")
@@ -98,11 +93,24 @@ public class Cli implements Callable<Integer> {
     @CommandLine.Option(names = { "-t", "--topic" })
     List<String> topics;
 
-    @CommandLine.Option(names = { "-k", "--key-format" })
+    @CommandLine.Option(
+      names = { "-k", "--key-format" },
+      description = "Key format recorded, valid values: ${COMPLETION-CANDIDATES}"
+    )
     Optional<EmulatorArchive.FieldFormat> keyFormat;
 
-    @CommandLine.Option(names = { "-v", "--value-format" })
+    @CommandLine.Option(
+      names = { "-v", "--value-format" },
+      description = "Value format recorded, valid values: ${COMPLETION-CANDIDATES}"
+    )
     Optional<EmulatorArchive.FieldFormat> valueFormat;
+
+    @CommandLine.Option(
+      names = { "-p", "--poll-timeout" },
+      description = "Seconds to wait for data to arrive to topic partitions",
+      defaultValue = "5"
+    )
+    int pollTimeout;
 
     @CommandLine.ArgGroup
     StartFromOption startFrom = new StartFromOption();
@@ -118,6 +126,7 @@ public class Cli implements Callable<Integer> {
         final var archive = emu.record(
           propertiesOption.load(),
           topics,
+          pollTimeout,
           keyFormat.orElse(EmulatorArchive.FieldFormat.BYTES),
           valueFormat.orElse(EmulatorArchive.FieldFormat.BYTES),
           startFrom.build(),
@@ -132,12 +141,9 @@ public class Cli implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(
-    name = "replay",
-    description = """
+  @CommandLine.Command(name = "replay", description = """
                 Replay topic events
-                """
-  )
+                """)
   static class ReplayCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(
@@ -220,10 +226,13 @@ public class Cli implements Callable<Integer> {
 
   static class EndAtOption {
 
+    @Option(names = { "--end-now" }, defaultValue = "false")
+    boolean endNow;
+
     @Option(names = { "-n", "--records" }, description = "Per partition")
     Optional<Integer> recordsPerPartition;
 
-    @CommandLine.Option(names = { "--end-at-ts" })
+    @CommandLine.Option(names = { "--end-at-ts" }, description = "Local date time format, e.g. ")
     Optional<LocalDateTime> toTime;
 
     @Option(names = { "--end-at-offsets" })
@@ -253,7 +262,7 @@ public class Cli implements Callable<Integer> {
             )
         );
       }
-      return KafkaRecorder.RecordEndAt.of();
+      return KafkaRecorder.RecordEndAt.of(endNow);
     }
   }
 
@@ -261,8 +270,7 @@ public class Cli implements Callable<Integer> {
 
     @CommandLine.Option(
       names = { "-c", "--config" },
-      description = "Client configuration properties file." +
-      "Must include connection to Kafka"
+      description = "Client configuration properties file." + "Must include connection to Kafka"
     )
     Optional<Path> configPath;
 
@@ -277,9 +285,7 @@ public class Cli implements Callable<Integer> {
             p.load(Files.newInputStream(path));
             return p;
           } catch (Exception e) {
-            throw new IllegalArgumentException(
-              "ERROR: properties file at %s is failing to load".formatted(path)
-            );
+            throw new IllegalArgumentException("ERROR: properties file at %s is failing to load".formatted(path));
           }
         })
         .orElseGet(() -> {
@@ -294,11 +300,7 @@ public class Cli implements Callable<Integer> {
 
   static class ContextOption {
 
-    @CommandLine.Option(
-      names = "--kafka",
-      description = "Kafka context name",
-      required = true
-    )
+    @CommandLine.Option(names = "--kafka", description = "Kafka context name", required = true)
     String kafkaContextName;
 
     @CommandLine.Option(names = "--sr", description = "Schema Registry context name")
@@ -320,19 +322,13 @@ public class Cli implements Callable<Integer> {
             final var srProps = sr.properties();
             props.putAll(srProps);
           } else {
-            err.printf(
-              "WARN: Schema Registry context `%s` not found. Proceeding without it.%n",
-              srName
-            );
+            err.printf("WARN: Schema Registry context `%s` not found. Proceeding without it.%n", srName);
           }
         }
 
         return props;
       } else {
-        err.printf(
-          "ERROR: Kafka context `%s` not found. Check that context already exist.%n",
-          kafkaContextName
-        );
+        err.printf("ERROR: Kafka context `%s` not found. Check that context already exist.%n", kafkaContextName);
         return null;
       }
     }
@@ -342,19 +338,14 @@ public class Cli implements Callable<Integer> {
 
     @Override
     public String[] getVersion() throws IOException {
-      final var url =
-        VersionProviderWithConfigProvider.class.getClassLoader()
-          .getResource("cli.properties");
+      final var url = VersionProviderWithConfigProvider.class.getClassLoader().getResource("cli.properties");
       if (url == null) {
         return new String[] { "No cli.properties file found in the classpath." };
       }
       final var properties = new Properties();
       properties.load(url.openStream());
       return new String[] {
-        properties.getProperty("appName") +
-        " version " +
-        properties.getProperty("appVersion") +
-        "",
+        properties.getProperty("appName") + " version " + properties.getProperty("appVersion") + "",
         "Built: " + properties.getProperty("appBuildTime"),
       };
     }

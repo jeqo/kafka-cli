@@ -37,19 +37,13 @@ class SchemaRegistryContextsCommand implements Callable<Integer> {
     return 0;
   }
 
-  @CommandLine.Command(
-    name = "create",
-    description = "Register context. Destination: ~/.kafka/schema-registry.json"
-  )
+  @CommandLine.Command(name = "create", description = "Register context. Destination: ~/.kafka/schema-registry.json")
   static class CreateCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "Context name. e.g. `local`")
     String name;
 
-    @CommandLine.Parameters(
-      index = "1",
-      description = "Schema Registry URLs. e.g. `http://localhost:8081`"
-    )
+    @CommandLine.Parameters(index = "1", description = "Schema Registry URLs. e.g. `http://localhost:8081`")
     String urls;
 
     @CommandLine.Option(
@@ -76,19 +70,12 @@ class SchemaRegistryContextsCommand implements Callable<Integer> {
             );
             default -> new HttpNoAuth();
           };
-        final var ctx = new SchemaRegistryContext(
-          name,
-          new SchemaRegistryCluster(urls, auth)
-        );
+        final var ctx = new SchemaRegistryContext(name, new SchemaRegistryCluster(urls, auth));
 
         contexts.add(ctx);
         contexts.save();
 
-        out.printf(
-          "Schema Registry context `%s` with URL(s): [%s] is saved.",
-          ctx.name(),
-          ctx.cluster().urls()
-        );
+        out.printf("Schema Registry context `%s` with URL(s): [%s] is saved.", ctx.name(), ctx.cluster().urls());
         return 0;
       } catch (IllegalArgumentException e) {
         err.println("ERROR: " + e.getMessage());
@@ -97,22 +84,13 @@ class SchemaRegistryContextsCommand implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(
-    name = "rename",
-    description = "Rename context. Destination: ~/.kafka/schema-registry.json"
-  )
+  @CommandLine.Command(name = "rename", description = "Rename context. Destination: ~/.kafka/schema-registry.json")
   static class RenameCommand implements Callable<Integer> {
 
-    @CommandLine.Parameters(
-      index = "0",
-      description = "Existing Schema Registry context name. e.g. `local`"
-    )
+    @CommandLine.Parameters(index = "0", description = "Existing Schema Registry context name. e.g. `local`")
     String oldName;
 
-    @CommandLine.Parameters(
-      index = "1",
-      description = "Name Schema Registry context name. e.g. `local`"
-    )
+    @CommandLine.Parameters(index = "1", description = "Name Schema Registry context name. e.g. `local`")
     String newName;
 
     @Override
@@ -138,10 +116,7 @@ class SchemaRegistryContextsCommand implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(
-    name = "delete",
-    description = "Removes context. Destination: ~/.kafka/schema-registry.json"
-  )
+  @CommandLine.Command(name = "delete", description = "Removes context. Destination: ~/.kafka/schema-registry.json")
   static class DeleteCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "Context name. e.g. `local`")
@@ -156,11 +131,7 @@ class SchemaRegistryContextsCommand implements Callable<Integer> {
         contexts.remove(name);
         contexts.save();
 
-        out.printf(
-          "Schema Registry context `%s` with URL(s): [%s] is deleted.%n",
-          ctx.name(),
-          ctx.cluster().urls()
-        );
+        out.printf("Schema Registry context `%s` with URL(s): [%s] is deleted.%n", ctx.name(), ctx.cluster().urls());
         return 0;
       } else {
         out.printf("Schema Registry Context %s is not registered.%n", name);

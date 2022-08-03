@@ -81,59 +81,39 @@ public class EmulatorArchive {
   void registerSchemas(Map<String, String> topicNameMapping) {
     if (!keySchemas.isEmpty()) {
       keyAvroSerializer.configure(
-        properties
-          .keySet()
-          .stream()
-          .collect(Collectors.toMap(String::valueOf, properties::get)),
+        properties.keySet().stream().collect(Collectors.toMap(String::valueOf, properties::get)),
         true
       );
     }
     for (var topic : keySchemas.keySet()) {
       final var recordSchema = keySchemas.get(topic);
-      if (recordSchema == null) throw new RuntimeException(
-        "Schema for " + topic + " (value) not found!"
-      );
+      if (recordSchema == null) throw new RuntimeException("Schema for " + topic + " (value) not found!");
       final var parsedSchema = recordSchema.parsedSchema();
       try {
-        keyAvroSerializer.register(
-          topicNameMapping.getOrDefault(topic, topic) + "-key",
-          parsedSchema
-        );
+        keyAvroSerializer.register(topicNameMapping.getOrDefault(topic, topic) + "-key", parsedSchema);
       } catch (IOException | RestClientException e) {
         throw new RuntimeException(e);
       }
     }
     if (!valueSchemas.isEmpty()) {
       valueAvroSerializer.configure(
-        properties
-          .keySet()
-          .stream()
-          .collect(Collectors.toMap(String::valueOf, properties::get)),
+        properties.keySet().stream().collect(Collectors.toMap(String::valueOf, properties::get)),
         false
       );
     }
     for (var topic : valueSchemas.keySet()) {
       final var recordSchema = valueSchemas.get(topic);
-      if (recordSchema == null) throw new RuntimeException(
-        "Schema for " + topic + " (value) not found!"
-      );
+      if (recordSchema == null) throw new RuntimeException("Schema for " + topic + " (value) not found!");
       final var parsedSchema = recordSchema.parsedSchema();
       try {
-        valueAvroSerializer.register(
-          topicNameMapping.getOrDefault(topic, topic) + "-value",
-          parsedSchema
-        );
+        valueAvroSerializer.register(topicNameMapping.getOrDefault(topic, topic) + "-value", parsedSchema);
       } catch (IOException | RestClientException e) {
         throw new RuntimeException(e);
       }
     }
   }
 
-  public static EmulatorArchive with(
-    FieldFormat keyFormat,
-    FieldFormat valueFormat,
-    Properties properties
-  ) {
+  public static EmulatorArchive with(FieldFormat keyFormat, FieldFormat valueFormat, Properties properties) {
     final var emulatorArchive = new EmulatorArchive();
     emulatorArchive.keyFormat = keyFormat;
     emulatorArchive.valueFormat = valueFormat;
@@ -141,10 +121,7 @@ public class EmulatorArchive {
     if (keyFormat.isSchemaRegistryBased()) {
       if (keyFormat == FieldFormat.SR_AVRO) {
         emulatorArchive.keyAvroDeserializer.configure(
-          properties
-            .keySet()
-            .stream()
-            .collect(Collectors.toMap(String::valueOf, properties::get)),
+          properties.keySet().stream().collect(Collectors.toMap(String::valueOf, properties::get)),
           true
         );
       }
@@ -152,10 +129,7 @@ public class EmulatorArchive {
     if (valueFormat.isSchemaRegistryBased()) {
       if (valueFormat == FieldFormat.SR_AVRO) {
         emulatorArchive.valueAvroDeserializer.configure(
-          properties
-            .keySet()
-            .stream()
-            .collect(Collectors.toMap(String::valueOf, properties::get)),
+          properties.keySet().stream().collect(Collectors.toMap(String::valueOf, properties::get)),
           true
         );
       }
@@ -214,42 +188,22 @@ public class EmulatorArchive {
     append(new TopicPartition(topic, partition), emuRecord);
   }
 
-  public void append(
-    TopicPartition topicPartition,
-    ConsumerRecord<byte[], byte[]> record,
-    long afterMs
-  ) {
+  public void append(TopicPartition topicPartition, ConsumerRecord<byte[], byte[]> record, long afterMs) {
     var key = record.key();
     if (keyFormat.equals(FieldFormat.SR_AVRO)) {
-      var avro = (GenericRecord) keyAvroDeserializer.deserialize(
-        topicPartition.topic(),
-        key
-      );
+      var avro = (GenericRecord) keyAvroDeserializer.deserialize(topicPartition.topic(), key);
       keySchemas.put(
         topicPartition.topic(),
-        new RecordSchema(
-          topicPartition.topic(),
-          true,
-          "AVRO",
-          avro.getSchema().toString(true)
-        )
+        new RecordSchema(topicPartition.topic(), true, "AVRO", avro.getSchema().toString(true))
       );
       key = jsonString(avro);
     }
     var value = record.value();
     if (valueFormat.equals(FieldFormat.SR_AVRO)) {
-      var avro = (GenericRecord) valueAvroDeserializer.deserialize(
-        topicPartition.topic(),
-        value
-      );
+      var avro = (GenericRecord) valueAvroDeserializer.deserialize(topicPartition.topic(), value);
       valueSchemas.put(
         topicPartition.topic(),
-        new RecordSchema(
-          topicPartition.topic(),
-          false,
-          "AVRO",
-          avro.getSchema().toString(true)
-        )
+        new RecordSchema(topicPartition.topic(), false, "AVRO", avro.getSchema().toString(true))
       );
       value = jsonString(avro);
     }
@@ -272,9 +226,7 @@ public class EmulatorArchive {
       final var outputStream = new ByteArrayOutputStream();
       final var schema = record.getSchema();
       final var datumWriter = new GenericDatumWriter<GenericRecord>(schema);
-      final var encoder = EncoderFactory
-        .get()
-        .jsonEncoder(record.getSchema(), outputStream);
+      final var encoder = EncoderFactory.get().jsonEncoder(record.getSchema(), outputStream);
       datumWriter.write(record, encoder);
       encoder.flush();
       return outputStream.toString().getBytes(StandardCharsets.UTF_8);
@@ -293,11 +245,7 @@ public class EmulatorArchive {
       return (GenericRecord) object;
     } catch (IOException | AvroRuntimeException e) {
       throw new SerializationException(
-        String.format(
-          "Error deserializing json %s to Avro of schema %s",
-          jsonString,
-          schema
-        ),
+        String.format("Error deserializing json %s to Avro of schema %s", jsonString, schema),
         e
       );
     }
@@ -308,17 +256,10 @@ public class EmulatorArchive {
       topicPartition,
       (tp, records) -> {
         records.add(record);
-        oldestOffsets.put(
-          tp,
-          oldestOffsets.get(tp) < record.offset()
-            ? record.offset()
-            : oldestOffsets.get(tp)
-        );
+        oldestOffsets.put(tp, oldestOffsets.get(tp) < record.offset() ? record.offset() : oldestOffsets.get(tp));
         oldestTimestamps.put(
           tp,
-          oldestTimestamps.get(tp) < record.timestamp()
-            ? record.timestamp()
-            : oldestTimestamps.get(tp)
+          oldestTimestamps.get(tp) < record.timestamp() ? record.timestamp() : oldestTimestamps.get(tp)
         );
         return records;
       }
@@ -339,12 +280,8 @@ public class EmulatorArchive {
     return records
       .keySet()
       .stream()
-      .filter(topicPartition ->
-        includeTopics.isEmpty() || includeTopics.contains(topicPartition.topic())
-      )
-      .filter(topicPartition ->
-        excludeTopics.isEmpty() || !excludeTopics.contains(topicPartition.topic())
-      )
+      .filter(topicPartition -> includeTopics.isEmpty() || includeTopics.contains(topicPartition.topic()))
+      .filter(topicPartition -> excludeTopics.isEmpty() || !excludeTopics.contains(topicPartition.topic()))
       .collect(Collectors.toSet());
   }
 
@@ -408,9 +345,7 @@ public class EmulatorArchive {
   byte[] processKeyAvroJson(String topicName, EmulatorRecord r) {
     final var jsonString = new String(r.key());
     final var recordSchema = valueSchemas.get(r.topic());
-    if (recordSchema == null) throw new RuntimeException(
-      "Schema for " + r.topic() + " (key) not found!"
-    );
+    if (recordSchema == null) throw new RuntimeException("Schema for " + r.topic() + " (key) not found!");
     final var parsedSchema = recordSchema.parsedSchema();
     final var record = readAvroJson(jsonString, parsedSchema);
 
@@ -427,9 +362,7 @@ public class EmulatorArchive {
   byte[] processValueAvroJson(String topicName, EmulatorRecord r) {
     final var jsonString = new String(r.value());
     final var recordSchema = valueSchemas.get(r.topic());
-    if (recordSchema == null) throw new RuntimeException(
-      "Schema for " + r.topic() + " (value) not found!"
-    );
+    if (recordSchema == null) throw new RuntimeException("Schema for " + r.topic() + " (value) not found!");
     final var parsedSchema = recordSchema.parsedSchema();
     final var record = readAvroJson(jsonString, parsedSchema);
     return valueAvroSerializer.serialize(topicName, record);

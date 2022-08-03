@@ -15,8 +15,7 @@ import org.apache.kafka.common.quota.ClientQuotaAlteration.Op;
 import org.apache.kafka.common.quota.ClientQuotaEntity;
 
 public record Quotas(List<Quota> quotas) {
-  static final ObjectMapper jsonMapper = new ObjectMapper()
-    .registerModule(new Jdk8Module());
+  static final ObjectMapper jsonMapper = new ObjectMapper().registerModule(new Jdk8Module());
 
   public static Quotas empty() {
     return new Quotas(new ArrayList<>());
@@ -66,26 +65,19 @@ public record Quotas(List<Quota> quotas) {
 
   record KafkaClientEntity(boolean isDefault, Optional<String> id) {}
 
-  record ClientEntity(
-    KafkaClientEntity user,
-    KafkaClientEntity clientId,
-    KafkaClientEntity ip
-  ) {
+  record ClientEntity(KafkaClientEntity user, KafkaClientEntity clientId, KafkaClientEntity ip) {
     public static ClientEntity from(ClientQuotaEntity entity) {
       final var entries = entity.entries();
       final var userEntity = new KafkaClientEntity(
-        entries.containsKey(ClientQuotaEntity.USER) &&
-        entries.get(ClientQuotaEntity.USER) == null,
+        entries.containsKey(ClientQuotaEntity.USER) && entries.get(ClientQuotaEntity.USER) == null,
         Optional.ofNullable(entries.get(ClientQuotaEntity.USER))
       );
       final var clientEntity = new KafkaClientEntity(
-        entries.containsKey(ClientQuotaEntity.CLIENT_ID) &&
-        entries.get(ClientQuotaEntity.CLIENT_ID) == null,
+        entries.containsKey(ClientQuotaEntity.CLIENT_ID) && entries.get(ClientQuotaEntity.CLIENT_ID) == null,
         Optional.ofNullable(entries.get(ClientQuotaEntity.CLIENT_ID))
       );
       final var ipEntity = new KafkaClientEntity(
-        entries.containsKey(ClientQuotaEntity.IP) &&
-        entries.get(ClientQuotaEntity.IP) == null,
+        entries.containsKey(ClientQuotaEntity.IP) && entries.get(ClientQuotaEntity.IP) == null,
         Optional.ofNullable(entries.get(ClientQuotaEntity.IP))
       );
       return new ClientEntity(userEntity, clientEntity, ipEntity);
@@ -136,9 +128,7 @@ public record Quotas(List<Quota> quotas) {
       final var produceRate = quotas.get(QuotaConfigs.PRODUCER_BYTE_RATE_OVERRIDE_CONFIG);
       final var fetchRate = quotas.get(QuotaConfigs.CONSUMER_BYTE_RATE_OVERRIDE_CONFIG);
       final var requestRate = quotas.get(QuotaConfigs.REQUEST_PERCENTAGE_OVERRIDE_CONFIG);
-      final var connectionRate = quotas.get(
-        QuotaConfigs.IP_CONNECTION_RATE_OVERRIDE_CONFIG
-      );
+      final var connectionRate = quotas.get(QuotaConfigs.IP_CONNECTION_RATE_OVERRIDE_CONFIG);
       return new Constraint(
         Optional.ofNullable(produceRate).map(NetworkBandwidth::new),
         Optional.ofNullable(fetchRate).map(NetworkBandwidth::new),
@@ -149,19 +139,9 @@ public record Quotas(List<Quota> quotas) {
 
     public List<Op> toEntries() {
       final var entries = new ArrayList<Op>(5);
-      produceRate.ifPresent(r ->
-        entries.add(
-          new Op(QuotaConfigs.PRODUCER_BYTE_RATE_OVERRIDE_CONFIG, r.bytesPerSec())
-        )
-      );
-      fetchRate.ifPresent(r ->
-        entries.add(
-          new Op(QuotaConfigs.CONSUMER_BYTE_RATE_OVERRIDE_CONFIG, r.bytesPerSec())
-        )
-      );
-      requestRate.ifPresent(r ->
-        entries.add(new Op(QuotaConfigs.REQUEST_PERCENTAGE_OVERRIDE_CONFIG, r.percent()))
-      );
+      produceRate.ifPresent(r -> entries.add(new Op(QuotaConfigs.PRODUCER_BYTE_RATE_OVERRIDE_CONFIG, r.bytesPerSec())));
+      fetchRate.ifPresent(r -> entries.add(new Op(QuotaConfigs.CONSUMER_BYTE_RATE_OVERRIDE_CONFIG, r.bytesPerSec())));
+      requestRate.ifPresent(r -> entries.add(new Op(QuotaConfigs.REQUEST_PERCENTAGE_OVERRIDE_CONFIG, r.percent())));
       connectionCreationRate.ifPresent(r ->
         entries.add(new Op(QuotaConfigs.IP_CONNECTION_RATE_OVERRIDE_CONFIG, r.rate()))
       );
@@ -179,18 +159,10 @@ public record Quotas(List<Quota> quotas) {
 
     public JsonNode toJson() {
       final var json = jsonMapper.createObjectNode();
-      produceRate.ifPresent(r ->
-        json.put(QuotaConfigs.PRODUCER_BYTE_RATE_OVERRIDE_CONFIG, r.bytesPerSec())
-      );
-      fetchRate.ifPresent(r ->
-        json.put(QuotaConfigs.CONSUMER_BYTE_RATE_OVERRIDE_CONFIG, r.bytesPerSec())
-      );
-      requestRate.ifPresent(r ->
-        json.put(QuotaConfigs.REQUEST_PERCENTAGE_OVERRIDE_CONFIG, r.percent())
-      );
-      connectionCreationRate.ifPresent(r ->
-        json.put(QuotaConfigs.IP_CONNECTION_RATE_OVERRIDE_CONFIG, r.rate())
-      );
+      produceRate.ifPresent(r -> json.put(QuotaConfigs.PRODUCER_BYTE_RATE_OVERRIDE_CONFIG, r.bytesPerSec()));
+      fetchRate.ifPresent(r -> json.put(QuotaConfigs.CONSUMER_BYTE_RATE_OVERRIDE_CONFIG, r.bytesPerSec()));
+      requestRate.ifPresent(r -> json.put(QuotaConfigs.REQUEST_PERCENTAGE_OVERRIDE_CONFIG, r.percent()));
+      connectionCreationRate.ifPresent(r -> json.put(QuotaConfigs.IP_CONNECTION_RATE_OVERRIDE_CONFIG, r.rate()));
       return json;
     }
   }

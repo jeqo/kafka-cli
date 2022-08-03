@@ -18,18 +18,10 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "perf", description = "run performance tests")
 public class PerfCommand implements Callable<Integer> {
 
-  @CommandLine.Option(
-    names = { "-t", "--topic" },
-    description = "target Kafka topic name",
-    required = true
-  )
+  @CommandLine.Option(names = { "-t", "--topic" }, description = "target Kafka topic name", required = true)
   String topicName;
 
-  @CommandLine.Option(
-    names = { "-n", "--num-records" },
-    description = "Number of records to produce",
-    required = true
-  )
+  @CommandLine.Option(names = { "-n", "--num-records" }, description = "Number of records to produce", required = true)
   long numRecords;
 
   @CommandLine.Option(
@@ -45,17 +37,10 @@ public class PerfCommand implements Callable<Integer> {
   @CommandLine.ArgGroup(multiplicity = "1")
   Cli.SchemaSourceOption schemaSource;
 
-  @CommandLine.Option(
-    names = { "-f", "--format" },
-    description = "Record value format",
-    defaultValue = "JSON"
-  )
+  @CommandLine.Option(names = { "-f", "--format" }, description = "Record value format", defaultValue = "JSON")
   PayloadGenerator.Format format;
 
-  @CommandLine.Option(
-    names = { "-p", "--prop" },
-    description = "Additional client properties"
-  )
+  @CommandLine.Option(names = { "-p", "--prop" }, description = "Additional client properties")
   Map<String, String> additionalProperties = new HashMap<>();
 
   int reportingIntervalMs = 5_000;
@@ -73,9 +58,7 @@ public class PerfCommand implements Callable<Integer> {
     var keySerializer = new StringSerializer();
     var valueSerializer = PayloadGenerator.valueSerializer(format, producerConfig);
 
-    try (
-      var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)
-    ) {
+    try (var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)) {
       final var config = new PerformanceRunner.Config(
         numRecords,
         topicName,
@@ -92,22 +75,13 @@ public class PerfCommand implements Callable<Integer> {
           format
         )
       );
-      final var throughputThrottler = new ThroughputThrottler(
-        System.currentTimeMillis(),
-        throughput
-      );
+      final var throughputThrottler = new ThroughputThrottler(System.currentTimeMillis(), throughput);
       final var stats = new Stats(numRecords, reportingIntervalMs);
 
       out.println("Avro Schema used to generate records:");
       out.println(payloadGenerator.schema());
 
-      var pp = new PerformanceRunner(
-        config,
-        producer,
-        payloadGenerator,
-        throughputThrottler,
-        stats
-      );
+      var pp = new PerformanceRunner(config, producer, payloadGenerator, throughputThrottler, stats);
       pp.start();
     }
     return 0;

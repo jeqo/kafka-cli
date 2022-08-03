@@ -43,12 +43,7 @@ public class PayloadGenerator {
         random.setSeed(random.nextLong());
       });
 
-    this.generator =
-      new Generator.Builder()
-        .random(random)
-        .generation(config.count())
-        .schema(config.schema())
-        .build();
+    this.generator = new Generator.Builder().random(random).generation(config.count()).schema(config.schema()).build();
     this.keyFieldName = config.keyFieldName();
   }
 
@@ -82,9 +77,7 @@ public class PayloadGenerator {
       final var outputStream = new ByteArrayOutputStream();
       final var schema = record.getSchema();
       final var datumWriter = new GenericDatumWriter<GenericRecord>(schema);
-      final var encoder = EncoderFactory
-        .get()
-        .jsonEncoder(record.getSchema(), outputStream);
+      final var encoder = EncoderFactory.get().jsonEncoder(record.getSchema(), outputStream);
       datumWriter.write(record, encoder);
       encoder.flush();
       return outputStream.toString();
@@ -139,8 +132,7 @@ public class PayloadGenerator {
             .map(s -> {
               Schema schemaFromSchemaFileName = null;
               try {
-                schemaFromSchemaFileName =
-                  getSchemaFromSchemaFileName(Files.newInputStream(schemaPath.get()));
+                schemaFromSchemaFileName = getSchemaFromSchemaFileName(Files.newInputStream(schemaPath.get()));
               } catch (IOException e) {
                 e.printStackTrace();
               }
@@ -177,18 +169,12 @@ public class PayloadGenerator {
     AVRO,
   }
 
-  public static Serializer<Object> valueSerializer(
-    Format format,
-    Properties producerConfig
-  ) {
+  public static Serializer<Object> valueSerializer(Format format, Properties producerConfig) {
     Serializer<Object> valueSerializer;
     if (format.equals(Format.AVRO)) {
       valueSerializer = new KafkaAvroSerializer();
       valueSerializer.configure(
-        producerConfig
-          .keySet()
-          .stream()
-          .collect(Collectors.toMap(String::valueOf, producerConfig::get)),
+        producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
         false
       );
     } else {

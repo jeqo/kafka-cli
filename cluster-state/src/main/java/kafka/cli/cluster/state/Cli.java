@@ -49,11 +49,7 @@ public class Cli implements Callable<Integer> {
   @ArgGroup(multiplicity = "1")
   PropertiesOption propertiesOption;
 
-  @Option(
-    names = { "--pretty" },
-    defaultValue = "false",
-    description = "Print pretty/formatted JSON"
-  )
+  @Option(names = { "--pretty" }, defaultValue = "false", description = "Print pretty/formatted JSON")
   boolean pretty;
 
   @Override
@@ -68,10 +64,7 @@ public class Cli implements Callable<Integer> {
         var srClient = new CachedSchemaRegistryClient(
           clientConfig.getProperty("schema.registry.url"),
           10_000,
-          clientConfig
-            .keySet()
-            .stream()
-            .collect(Collectors.toMap(Object::toString, clientConfig::get))
+          clientConfig.keySet().stream().collect(Collectors.toMap(Object::toString, clientConfig::get))
         );
         final var helper = new Helper(adminClient, srClient);
         final var output = helper.run(opts);
@@ -95,8 +88,7 @@ public class Cli implements Callable<Integer> {
 
     @CommandLine.Option(
       names = { "-c", "--config" },
-      description = "Client configuration properties file." +
-      "Must include connection to Kafka"
+      description = "Client configuration properties file." + "Must include connection to Kafka"
     )
     Optional<Path> configPath;
 
@@ -111,9 +103,7 @@ public class Cli implements Callable<Integer> {
             p.load(Files.newInputStream(path));
             return p;
           } catch (Exception e) {
-            throw new IllegalArgumentException(
-              "ERROR: properties file at %s is failing to load".formatted(path)
-            );
+            throw new IllegalArgumentException("ERROR: properties file at %s is failing to load".formatted(path));
           }
         })
         .orElseGet(() -> {
@@ -150,19 +140,13 @@ public class Cli implements Callable<Integer> {
             final var srProps = sr.properties();
             props.putAll(srProps);
           } else {
-            err.printf(
-              "WARN: Schema Registry context `%s` not found. Proceeding without it.%n",
-              srName
-            );
+            err.printf("WARN: Schema Registry context `%s` not found. Proceeding without it.%n", srName);
           }
         }
 
         return props;
       } else {
-        err.printf(
-          "ERROR: Kafka context `%s` not found. Check that context already exist.%n",
-          kafkaContextName
-        );
+        err.printf("ERROR: Kafka context `%s` not found. Check that context already exist.%n", kafkaContextName);
         return null;
       }
     }
@@ -172,19 +156,14 @@ public class Cli implements Callable<Integer> {
 
     @Override
     public String[] getVersion() throws IOException {
-      final var url =
-        VersionProviderWithConfigProvider.class.getClassLoader()
-          .getResource("cli.properties");
+      final var url = VersionProviderWithConfigProvider.class.getClassLoader().getResource("cli.properties");
       if (url == null) {
         return new String[] { "No cli.properties file found in the classpath." };
       }
       final var properties = new Properties();
       properties.load(url.openStream());
       return new String[] {
-        properties.getProperty("appName") +
-        " version " +
-        properties.getProperty("appVersion") +
-        "",
+        properties.getProperty("appName") + " version " + properties.getProperty("appVersion") + "",
         "Built: " + properties.getProperty("appBuildTime"),
       };
     }

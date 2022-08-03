@@ -20,26 +20,16 @@ import kafka.cli.producer.datagen.Cli;
 import org.apache.kafka.clients.admin.AdminClient;
 import picocli.CommandLine;
 
-@CommandLine.Command(
-  name = "topics",
-  description = "List topics and subjectSchemas available in a cluster"
-)
+@CommandLine.Command(name = "topics", description = "List topics and subjectSchemas available in a cluster")
 public class ListTopicsCommand implements Callable<Integer> {
 
   @CommandLine.ArgGroup(multiplicity = "1")
   Cli.PropertiesOption propertiesOption;
 
-  @CommandLine.Option(
-    names = { "--pretty" },
-    defaultValue = "false",
-    description = "Print pretty/formatted JSON"
-  )
+  @CommandLine.Option(names = { "--pretty" }, defaultValue = "false", description = "Print pretty/formatted JSON")
   boolean pretty;
 
-  @CommandLine.Option(
-    names = { "-p", "--prop" },
-    description = "Additional client properties"
-  )
+  @CommandLine.Option(names = { "-p", "--prop" }, description = "Additional client properties")
   Map<String, String> additionalProperties = new HashMap<>();
 
   @CommandLine.Option(names = { "--prefix" }, description = "Topic name prefix")
@@ -69,12 +59,7 @@ public class ListTopicsCommand implements Callable<Integer> {
           new CachedSchemaRegistryClient(
             schemaRegistryUrl,
             10,
-            props
-              .keySet()
-              .stream()
-              .collect(
-                Collectors.toMap(Object::toString, k -> props.getProperty(k.toString()))
-              )
+            props.keySet().stream().collect(Collectors.toMap(Object::toString, k -> props.getProperty(k.toString())))
           )
         );
     } else {
@@ -100,13 +85,7 @@ public class ListTopicsCommand implements Callable<Integer> {
             throw new RuntimeException(e);
           }
         })
-        .map(parsedSchemas ->
-          parsedSchemas
-            .entrySet()
-            .stream()
-            .map(TopicAndSchema.SubjectSchemas::from)
-            .toList()
-        )
+        .map(parsedSchemas -> parsedSchemas.entrySet().stream().map(TopicAndSchema.SubjectSchemas::from).toList())
         .orElse(List.of());
       result.add(new TopicAndSchema(topic, subject));
     }
@@ -133,10 +112,7 @@ public class ListTopicsCommand implements Callable<Integer> {
 
     record SubjectSchemas(String name, List<Schema> schemas) {
       static SubjectSchemas from(Map.Entry<String, List<ParsedSchema>> entry) {
-        return new SubjectSchemas(
-          entry.getKey(),
-          entry.getValue().stream().map(TopicAndSchema.Schema::from).toList()
-        );
+        return new SubjectSchemas(entry.getKey(), entry.getValue().stream().map(TopicAndSchema.Schema::from).toList());
       }
 
       JsonNode toJson() {

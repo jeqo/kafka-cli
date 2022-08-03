@@ -3,6 +3,7 @@ package kafka.cli.emulator;
 import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +26,7 @@ public class SqliteStore {
     try (final var conn = DriverManager.getConnection(db)) {
       final var archive = EmulatorArchive.with(properties);
       final var st = conn.createStatement();
+      prepareSchema(st);
       final var rs = st.executeQuery(
         """
                         SELECT *
@@ -32,12 +34,8 @@ public class SqliteStore {
                         ORDER BY offset ASC"""
       );
       while (rs.next()) {
-        final var keyFormat = EmulatorArchive.FieldFormat.valueOf(
-          rs.getString("key_format")
-        );
-        final var valueFormat = EmulatorArchive.FieldFormat.valueOf(
-          rs.getString("value_format")
-        );
+        final var keyFormat = EmulatorArchive.FieldFormat.valueOf(rs.getString("key_format"));
+        final var valueFormat = EmulatorArchive.FieldFormat.valueOf(rs.getString("value_format"));
 
         archive.append(
           rs.getString("topic"),
@@ -74,15 +72,9 @@ public class SqliteStore {
         String schemaString = schemaRs.getString("schema");
 
         if (isKey) {
-          keySchemas.put(
-            topic,
-            new EmulatorArchive.RecordSchema(topic, true, schemaType, schemaString)
-          );
+          keySchemas.put(topic, new EmulatorArchive.RecordSchema(topic, true, schemaType, schemaString));
         } else {
-          valueSchemas.put(
-            topic,
-            new EmulatorArchive.RecordSchema(topic, false, schemaType, schemaString)
-          );
+          valueSchemas.put(topic, new EmulatorArchive.RecordSchema(topic, false, schemaType, schemaString));
         }
       }
       archive.keySchemas = keySchemas;
@@ -97,60 +89,7 @@ public class SqliteStore {
     final var db = "jdbc:sqlite:" + archivePath.toAbsolutePath();
     try (final var conn = DriverManager.getConnection(db)) {
       final var st = conn.createStatement();
-      // Prepare schema
-      st.executeUpdate(
-        """
-                        CREATE TABLE IF NOT EXISTS records_v1
-                        (
-                            topic text not null,
-                            partition int not null,
-                            offset long,
-                            timestamp long,
-                            after_ms long not null,
-                            key_format text not null,
-                            value_format text not null,
-                            key_bytes bytes,
-                            value_bytes bytes,
-                            key_string text,
-                            value_string text,
-                            key_int int,
-                            value_int int,
-                            key_long long,
-                            value_long long,
-                            key_sr_avro text,
-                            value_sr_avro text
-                        )"""
-      );
-      st.executeUpdate(
-        """
-              CREATE TABLE IF NOT EXISTS schemas_v1
-              (
-                topic text not null,
-                is_key boolean not null,
-                schema_type text not null,
-                schema text not null
-              )"""
-      );
-      st.executeUpdate(
-        """
-                        CREATE INDEX IF NOT EXISTS records_v1_topic
-                        ON records_v1 (topic)"""
-      );
-      st.executeUpdate(
-        """
-                        CREATE INDEX IF NOT EXISTS records_v1_partition
-                        ON records_v1 (partition)"""
-      );
-      st.executeUpdate(
-        """
-                        CREATE INDEX IF NOT EXISTS records_v1_offset
-                        ON records_v1 (offset)"""
-      );
-      st.executeUpdate(
-        """
-                              CREATE INDEX IF NOT EXISTS schemas_v1_topic
-                              ON schemas_v1 (topic)"""
-      );
+      prepareSchema(st);
       // prepare schemas batch
       final var schemaPs = conn.prepareStatement(
         """
@@ -258,5 +197,62 @@ public class SqliteStore {
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  void prepareSchema(Statement st) throws SQLException {
+    // Prepare schema
+    st.executeUpdate(
+      """
+                      CREATE TABLE IF NOT EXISTS records_v1
+                      (
+                          topic text not null,
+                          partition int not null,
+                          offset long,
+                          timestamp long,
+                          after_ms long not null,
+                          key_format text not null,
+                          value_format text not null,
+                          key_bytes bytes,
+                          value_bytes bytes,
+                          key_string text,
+                          value_string text,
+                          key_int int,
+                          value_int int,
+                          key_long long,
+                          value_long long,
+                          key_sr_avro text,
+                          value_sr_avro text
+                      )"""
+    );
+    st.executeUpdate(
+      """
+            CREATE TABLE IF NOT EXISTS schemas_v1
+            (
+              topic text not null,
+              is_key boolean not null,
+              schema_type text not null,
+              schema text not null
+            )"""
+    );
+    st.executeUpdate(
+      """
+                      CREATE INDEX IF NOT EXISTS records_v1_topic
+                      ON records_v1 (topic)"""
+    );
+    st.executeUpdate(
+      """
+                      CREATE INDEX IF NOT EXISTS records_v1_partition
+                      ON records_v1 (partition)"""
+    );
+    st.executeUpdate(
+      """
+                      CREATE INDEX IF NOT EXISTS records_v1_offset
+                      ON records_v1 (offset)"""
+    );
+    st.executeUpdate(
+      """
+                            CREATE INDEX IF NOT EXISTS schemas_v1_topic
+                            ON schemas_v1 (topic)"""
+    );
   }
 }
