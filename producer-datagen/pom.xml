@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>kafka-cli-producer-datagen</artifactId>
-    <version>0.2.5-SNAPSHOT</version>
+    <version>0.2.5</version>
 
     <name>kafka-cli-producer-datagen</name>
     <description>Kafka CLI: Producer Datagen</description>
