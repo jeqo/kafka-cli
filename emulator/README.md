@@ -82,7 +82,7 @@ Once execution completes, the SQLite file could be opened with any compatible to
 datasette sample.db
 ```
 
-![img.png](docs/datasette.png)
+![datasette](./docs/datasette.png)
 
 ### Modify events (optional)
 
@@ -98,7 +98,7 @@ sqlite-utils kfk-emulator.db "select * from records_v1" --csv > examples/records
 
 Import CSV to Google Spreadsheet:
 
-![img.png](docs/google-drive.png)
+![google spreadsheet](./docs/google-drive.png)
 
 And reimport CSV into SQLite:
 
