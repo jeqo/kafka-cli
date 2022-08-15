@@ -10,10 +10,10 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import kafka.cli.producer.datagen.Cli.VersionProviderWithConfigProvider;
-import kafka.cli.producer.datagen.command.ProduceIntervalCommand;
 import kafka.cli.producer.datagen.command.ListTopicsCommand;
-import kafka.cli.producer.datagen.command.ProducePerfCommand;
+import kafka.cli.producer.datagen.command.ProduceIntervalCommand;
 import kafka.cli.producer.datagen.command.ProduceOnceCommand;
+import kafka.cli.producer.datagen.command.ProducePerfCommand;
 import kafka.cli.producer.datagen.command.SampleCommand;
 import kafka.context.KafkaContexts;
 import kafka.context.sr.SchemaRegistryContexts;
@@ -29,7 +29,11 @@ import picocli.CommandLine.Option;
   descriptionHeading = "Kafka CLI - Producer Datagen",
   description = "Kafka Producer with Data generation",
   subcommands = {
-    ProducePerfCommand.class, ProduceIntervalCommand.class, ProduceOnceCommand.class, SampleCommand.class, ListTopicsCommand.class,
+    ProducePerfCommand.class,
+    ProduceIntervalCommand.class,
+    ProduceOnceCommand.class,
+    SampleCommand.class,
+    ListTopicsCommand.class,
   }
 )
 public class Cli implements Callable<Integer> {
@@ -62,7 +66,11 @@ public class Cli implements Callable<Integer> {
           try {
             final var props = new Properties();
             props.load(Files.newInputStream(path));
-            if (contextOption != null && contextOption.kafkaContextName != null && !contextOption.kafkaContextName.isBlank()) {
+            if (
+              contextOption != null &&
+              contextOption.kafkaContextName != null &&
+              !contextOption.kafkaContextName.isBlank()
+            ) {
               props.putAll(contextOption.load());
             }
             return props;
@@ -117,6 +125,7 @@ public class Cli implements Callable<Integer> {
   }
 
   public static class SchemaOptions {
+
     @CommandLine.ArgGroup(multiplicity = "1")
     SchemaSourceOption schemaSource;
 
@@ -127,7 +136,14 @@ public class Cli implements Callable<Integer> {
     PayloadGenerator.Format format;
 
     public PayloadGenerator.Config config() {
-      return new PayloadGenerator.Config(Optional.empty(), schemaSource.quickstart, schemaSource.schemaPath, 10, format, keyFieldName);
+      return new PayloadGenerator.Config(
+        Optional.empty(),
+        schemaSource.quickstart,
+        schemaSource.schemaPath,
+        10,
+        format,
+        keyFieldName
+      );
     }
 
     public PayloadGenerator.Format format() {

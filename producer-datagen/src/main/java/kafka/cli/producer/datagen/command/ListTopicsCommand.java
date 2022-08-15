@@ -44,49 +44,49 @@ public class ListTopicsCommand implements Callable<Integer> {
     props.putAll(additionalProperties);
     try (final var kafkaAdminClient = AdminClient.create(props)) {
       final var topics = kafkaAdminClient
-              .listTopics()
-              .names()
-              .get()
-              .stream()
-              .filter(t -> prefix.map(t::startsWith).orElse(true))
-              .toList();
+        .listTopics()
+        .names()
+        .get()
+        .stream()
+        .filter(t -> prefix.map(t::startsWith).orElse(true))
+        .toList();
 
       final var schemaRegistryUrl = props.getProperty("schema.registry.url");
       final Optional<SchemaRegistryClient> schemaRegistryClient;
       if (schemaRegistryUrl != null && !schemaRegistryUrl.isBlank()) {
         schemaRegistryClient =
-                Optional.of(
-                        new CachedSchemaRegistryClient(
-                                schemaRegistryUrl,
-                                10,
-                                props.keySet().stream().collect(Collectors.toMap(Object::toString, k -> props.getProperty(k.toString())))
-                        )
-                );
+          Optional.of(
+            new CachedSchemaRegistryClient(
+              schemaRegistryUrl,
+              10,
+              props.keySet().stream().collect(Collectors.toMap(Object::toString, k -> props.getProperty(k.toString())))
+            )
+          );
       } else {
         schemaRegistryClient = Optional.empty();
       }
       final var result = new ArrayList<TopicAndSchema>(topics.size());
       for (final var topic : topics) {
         var subject = schemaRegistryClient
-                .map(c -> {
-                  try {
-                    final var allSubjectsByPrefix = c.getAllSubjectsByPrefix(topic);
-                    final var subjects = new HashMap<String, List<ParsedSchema>>();
-                    for (final var s : allSubjectsByPrefix) {
-                      try {
-                        final var schemas = c.getSchemas(s, false, true);
-                        subjects.put(s, schemas);
-                      } catch (IOException | RestClientException e) {
-                        throw new RuntimeException(e);
-                      }
-                    }
-                    return subjects;
-                  } catch (IOException | RestClientException e) {
-                    throw new RuntimeException(e);
-                  }
-                })
-                .map(parsedSchemas -> parsedSchemas.entrySet().stream().map(TopicAndSchema.SubjectSchemas::from).toList())
-                .orElse(List.of());
+          .map(c -> {
+            try {
+              final var allSubjectsByPrefix = c.getAllSubjectsByPrefix(topic);
+              final var subjects = new HashMap<String, List<ParsedSchema>>();
+              for (final var s : allSubjectsByPrefix) {
+                try {
+                  final var schemas = c.getSchemas(s, false, true);
+                  subjects.put(s, schemas);
+                } catch (IOException | RestClientException e) {
+                  throw new RuntimeException(e);
+                }
+              }
+              return subjects;
+            } catch (IOException | RestClientException e) {
+              throw new RuntimeException(e);
+            }
+          })
+          .map(parsedSchemas -> parsedSchemas.entrySet().stream().map(TopicAndSchema.SubjectSchemas::from).toList())
+          .orElse(List.of());
         result.add(new TopicAndSchema(topic, subject));
       }
       final var array = json.createArrayNode();

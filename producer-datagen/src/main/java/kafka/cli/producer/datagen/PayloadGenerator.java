@@ -166,8 +166,9 @@ public class PayloadGenerator {
 
     @Override
     public String keyFieldName() {
-      if (keyFieldName == null) return quickstart.map(Quickstart::getSchemaKeyField).orElse(null);
-      else return keyFieldName;
+      if (keyFieldName == null) return quickstart
+        .map(Quickstart::getSchemaKeyField)
+        .orElse(null); else return keyFieldName;
     }
   }
 

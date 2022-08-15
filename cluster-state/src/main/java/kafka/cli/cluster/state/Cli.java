@@ -107,7 +107,11 @@ public class Cli implements Callable<Integer> {
           try {
             final var props = new Properties();
             props.load(Files.newInputStream(path));
-            if (contextOption != null && contextOption.kafkaContextName != null && !contextOption.kafkaContextName.isBlank()) {
+            if (
+              contextOption != null &&
+              contextOption.kafkaContextName != null &&
+              !contextOption.kafkaContextName.isBlank()
+            ) {
               props.putAll(contextOption.load());
             }
             return props;
