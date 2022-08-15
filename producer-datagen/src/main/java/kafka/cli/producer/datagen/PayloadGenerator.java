@@ -116,12 +116,17 @@ public class PayloadGenerator {
     return generator.schema().toString();
   }
 
+  public String keyFieldName() {
+    return keyFieldName;
+  }
+
   public record Config(
     Optional<Long> randomSeed,
     Optional<Quickstart> quickstart,
     Optional<Path> schemaPath,
     long count,
-    Format format
+    Format format,
+    String keyFieldName
   ) {
     Schema schema() {
       return quickstart
@@ -159,8 +164,10 @@ public class PayloadGenerator {
       return schema;
     }
 
+    @Override
     public String keyFieldName() {
-      return quickstart.map(Quickstart::getSchemaKeyField).orElse(null);
+      if (keyFieldName == null) return quickstart.map(Quickstart::getSchemaKeyField).orElse(null);
+      else return keyFieldName;
     }
   }
 
@@ -169,6 +176,7 @@ public class PayloadGenerator {
     AVRO,
   }
 
+  @SuppressWarnings("unchecked")
   public static Serializer<Object> valueSerializer(Format format, Properties producerConfig) {
     Serializer<Object> valueSerializer;
     if (format.equals(Format.AVRO)) {

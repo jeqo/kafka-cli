@@ -31,7 +31,8 @@ public class SampleCommand implements Callable<Integer> {
         schemaSource.quickstart,
         schemaSource.schemaPath,
         1,
-        PayloadGenerator.Format.JSON
+        PayloadGenerator.Format.JSON,
+        null
       )
     );
     if (schema) {

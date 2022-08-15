@@ -116,6 +116,25 @@ public class Cli implements Callable<Integer> {
     }
   }
 
+  public static class SchemaOptions {
+    @CommandLine.ArgGroup(multiplicity = "1")
+    SchemaSourceOption schemaSource;
+
+    @Option(names = "--key", description = "Key field name. When using custom schema, if empty, it uses null keys")
+    String keyFieldName;
+
+    @CommandLine.Option(names = { "-f", "--format" }, description = "Record value format", defaultValue = "JSON")
+    PayloadGenerator.Format format;
+
+    public PayloadGenerator.Config config() {
+      return new PayloadGenerator.Config(Optional.empty(), schemaSource.quickstart, schemaSource.schemaPath, 10, format, keyFieldName);
+    }
+
+    public PayloadGenerator.Format format() {
+      return format;
+    }
+  }
+
   public static class SchemaSourceOption {
 
     @Option(names = { "-q", "--quickstart" }, description = "Quickstart name. Valid values:  ${COMPLETION-CANDIDATES}")

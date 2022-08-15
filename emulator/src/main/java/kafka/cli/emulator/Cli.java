@@ -109,7 +109,7 @@ public class Cli implements Callable<Integer> {
     Optional<EmulatorArchive.FieldFormat> valueFormat;
 
     @CommandLine.Option(
-      names = { "-p", "--poll-timeout" },
+      names = { "--poll-timeout" },
       description = "Seconds to wait for data to arrive to topic partitions",
       defaultValue = "5"
     )

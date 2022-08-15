@@ -4,7 +4,6 @@ import static java.lang.System.out;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import kafka.cli.producer.datagen.Cli;
 import kafka.cli.producer.datagen.PayloadGenerator;
@@ -22,11 +21,8 @@ public class ProduceOnceCommand implements Callable<Integer> {
   @CommandLine.ArgGroup(multiplicity = "1", exclusive = false)
   Cli.PropertiesOption propertiesOption;
 
-  @CommandLine.ArgGroup(multiplicity = "1")
-  Cli.SchemaSourceOption schemaSource;
-
-  @CommandLine.Option(names = { "-f", "--format" }, description = "Record value format", defaultValue = "JSON")
-  PayloadGenerator.Format format;
+  @CommandLine.ArgGroup(exclusive = false)
+  Cli.SchemaOptions schemaOpts;
 
   @CommandLine.Option(names = { "-p", "--prop" }, description = "Additional client properties")
   Map<String, String> additionalProperties = new HashMap<>();
@@ -37,15 +33,14 @@ public class ProduceOnceCommand implements Callable<Integer> {
     if (producerConfig == null) return 1;
     producerConfig.putAll(additionalProperties);
     var keySerializer = new StringSerializer();
-    Serializer<Object> valueSerializer = PayloadGenerator.valueSerializer(format, producerConfig);
+    Serializer<Object> valueSerializer = PayloadGenerator.valueSerializer(schemaOpts.format(), producerConfig);
 
     try (var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)) {
-      var pg = new PayloadGenerator(
-        new PayloadGenerator.Config(Optional.empty(), schemaSource.quickstart, schemaSource.schemaPath, 10, format)
-      );
+      var pg = new PayloadGenerator(schemaOpts.config());
 
       out.println("Avro Schema used to generate records:");
       out.println(pg.schema());
+      out.printf("With field [%s] as key%n", pg.keyFieldName());
 
       var meta = producer.send(pg.record(topicName)).get();
       out.println("Record sent. " + meta);

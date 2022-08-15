@@ -51,7 +51,7 @@ public class Cli implements Callable<Integer> {
   @ArgGroup(multiplicity = "1", exclusive = false)
   PropertiesOption propertiesOption;
 
-  @CommandLine.Option(names = { "-p", "--prop" }, description = "Additional client properties")
+  @CommandLine.Option(names = { "--prop" }, description = "Additional client properties")
   Map<String, String> additionalProperties = new HashMap<>();
 
   @Option(names = { "--pretty" }, defaultValue = "false", description = "Print pretty/formatted JSON")

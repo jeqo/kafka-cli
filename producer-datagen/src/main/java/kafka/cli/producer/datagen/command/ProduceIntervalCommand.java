@@ -4,7 +4,6 @@ import static java.lang.System.out;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import kafka.cli.producer.datagen.Cli;
 import kafka.cli.producer.datagen.IntervalRunner;
@@ -34,11 +33,8 @@ public class ProduceIntervalCommand implements Callable<Integer> {
   @CommandLine.ArgGroup(multiplicity = "1", exclusive = false)
   Cli.PropertiesOption propertiesOption;
 
-  @CommandLine.Option(names = { "-f", "--format" }, description = "Record value format", defaultValue = "JSON")
-  PayloadGenerator.Format format;
-
-  @CommandLine.ArgGroup(multiplicity = "1")
-  Cli.SchemaSourceOption schemaSource;
+  @CommandLine.ArgGroup(exclusive = false)
+  Cli.SchemaOptions schemaOpts;
 
   @CommandLine.Option(names = { "-p", "--prop" }, description = "Additional client properties")
   Map<String, String> additionalProperties = new HashMap<>();
@@ -52,23 +48,16 @@ public class ProduceIntervalCommand implements Callable<Integer> {
     producerConfig.putAll(additionalProperties);
 
     var keySerializer = new StringSerializer();
-    Serializer<Object> valueSerializer = PayloadGenerator.valueSerializer(format, producerConfig);
+    Serializer<Object> valueSerializer = PayloadGenerator.valueSerializer(schemaOpts.format(), producerConfig);
 
     try (var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)) {
-      final var payloadGenerator = new PayloadGenerator(
-        new PayloadGenerator.Config(
-          Optional.empty(),
-          schemaSource.quickstart,
-          schemaSource.schemaPath,
-          numRecords,
-          format
-        )
-      );
+      final var payloadGenerator = new PayloadGenerator(schemaOpts.config());
       final var stats = new Stats(numRecords, reportingIntervalMs);
       final var config = new IntervalRunner.Config(topicName, numRecords, intervalMs);
 
       out.println("Avro Schema used to generate records:");
       out.println(payloadGenerator.schema());
+      out.printf("With field [%s] as key%n", payloadGenerator.keyFieldName());
 
       var pp = new IntervalRunner(config, producer, payloadGenerator, stats);
       pp.start();

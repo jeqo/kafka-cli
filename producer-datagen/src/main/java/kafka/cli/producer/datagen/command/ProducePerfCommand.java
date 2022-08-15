@@ -4,7 +4,6 @@ import static java.lang.System.out;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import kafka.cli.producer.datagen.Cli;
 import kafka.cli.producer.datagen.PayloadGenerator;
@@ -34,11 +33,8 @@ public class ProducePerfCommand implements Callable<Integer> {
   @CommandLine.ArgGroup(multiplicity = "1", exclusive = false)
   Cli.PropertiesOption propertiesOption;
 
-  @CommandLine.ArgGroup(multiplicity = "1")
-  Cli.SchemaSourceOption schemaSource;
-
-  @CommandLine.Option(names = { "-f", "--format" }, description = "Record value format", defaultValue = "JSON")
-  PayloadGenerator.Format format;
+  @CommandLine.ArgGroup(exclusive = false)
+  Cli.SchemaOptions schemaOpts;
 
   @CommandLine.Option(names = { "-p", "--prop" }, description = "Additional client properties")
   Map<String, String> additionalProperties = new HashMap<>();
@@ -56,7 +52,7 @@ public class ProducePerfCommand implements Callable<Integer> {
     producerConfig.putAll(additionalProperties);
 
     var keySerializer = new StringSerializer();
-    var valueSerializer = PayloadGenerator.valueSerializer(format, producerConfig);
+    var valueSerializer = PayloadGenerator.valueSerializer(schemaOpts.format(), producerConfig);
 
     try (var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)) {
       final var config = new PerformanceRunner.Config(
@@ -66,20 +62,13 @@ public class ProducePerfCommand implements Callable<Integer> {
         transactionDurationMs,
         shouldPrintMetrics
       );
-      final var payloadGenerator = new PayloadGenerator(
-        new PayloadGenerator.Config(
-          Optional.empty(),
-          schemaSource.quickstart,
-          schemaSource.schemaPath,
-          numRecords,
-          format
-        )
-      );
+      final var payloadGenerator = new PayloadGenerator(schemaOpts.config());
       final var throughputThrottler = new ThroughputThrottler(System.currentTimeMillis(), throughput);
       final var stats = new Stats(numRecords, reportingIntervalMs);
 
       out.println("Avro Schema used to generate records:");
       out.println(payloadGenerator.schema());
+      out.printf("With field [%s] as key%n", payloadGenerator.keyFieldName());
 
       var pp = new PerformanceRunner(config, producer, payloadGenerator, throughputThrottler, stats);
       pp.start();
