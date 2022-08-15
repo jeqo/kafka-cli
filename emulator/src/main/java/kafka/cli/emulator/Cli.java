@@ -82,6 +82,9 @@ public class Cli implements Callable<Integer> {
     @CommandLine.ArgGroup(multiplicity = "1")
     PropertiesOption propertiesOption;
 
+    @CommandLine.Option(names = { "-p", "--prop" }, description = "Additional client properties")
+    Map<String, String> additionalProperties = new HashMap<>();
+
     @CommandLine.Parameters(
       index = "0",
       description = """
@@ -123,8 +126,10 @@ public class Cli implements Callable<Integer> {
       try {
         final var store = new SqliteStore(archivePath);
         final var emu = new KafkaRecorder();
+        final var properties = propertiesOption.load();
+        properties.putAll(additionalProperties);
         final var archive = emu.record(
-          propertiesOption.load(),
+          properties,
           topics,
           pollTimeout,
           keyFormat.orElse(EmulatorArchive.FieldFormat.BYTES),
@@ -163,8 +168,11 @@ public class Cli implements Callable<Integer> {
     @Option(names = { "--exclude" })
     List<String> excludes = new ArrayList<>();
 
-    @CommandLine.ArgGroup(multiplicity = "1")
+    @CommandLine.ArgGroup(multiplicity = "1", exclusive = false)
     PropertiesOption propertiesOption;
+
+    @CommandLine.Option(names = { "-p", "--prop" }, description = "Additional client properties")
+    Map<String, String> additionalProperties = new HashMap<>();
 
     @CommandLine.Option(names = { "--dry-run" })
     boolean dryRun; // false
@@ -177,6 +185,7 @@ public class Cli implements Callable<Integer> {
       try {
         final var store = new SqliteStore(archivePath);
         final var properties = propertiesOption.load();
+        properties.putAll(additionalProperties);
         // load archive
         var archive = store.load(properties);
         archive.setIncludeTopics(includes);
@@ -281,9 +290,12 @@ public class Cli implements Callable<Integer> {
       return configPath
         .map(path -> {
           try {
-            final var p = new Properties();
-            p.load(Files.newInputStream(path));
-            return p;
+            final var props = new Properties();
+            props.load(Files.newInputStream(path));
+            if (contextOption != null && contextOption.kafkaContextName != null && !contextOption.kafkaContextName.isBlank()) {
+              props.putAll(contextOption.load());
+            }
+            return props;
           } catch (Exception e) {
             throw new IllegalArgumentException("ERROR: properties file at %s is failing to load".formatted(path));
           }

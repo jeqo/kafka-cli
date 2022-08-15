@@ -16,7 +16,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "interval", description = "run producer with interval")
-public class IntervalCommand implements Callable<Integer> {
+public class ProduceIntervalCommand implements Callable<Integer> {
 
   @CommandLine.Option(names = { "-t", "--topic" }, description = "target Kafka topic name", required = true)
   String topicName;
@@ -31,7 +31,7 @@ public class IntervalCommand implements Callable<Integer> {
   )
   long intervalMs;
 
-  @CommandLine.ArgGroup(multiplicity = "1")
+  @CommandLine.ArgGroup(multiplicity = "1", exclusive = false)
   Cli.PropertiesOption propertiesOption;
 
   @CommandLine.Option(names = { "-f", "--format" }, description = "Record value format", defaultValue = "JSON")

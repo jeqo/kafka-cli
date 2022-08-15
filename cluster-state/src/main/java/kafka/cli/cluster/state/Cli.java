@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -46,8 +48,11 @@ public class Cli implements Callable<Integer> {
   @Option(names = { "-p", "--prefix" }, description = "Topic name prefix")
   Optional<String> prefix = Optional.empty();
 
-  @ArgGroup(multiplicity = "1")
+  @ArgGroup(multiplicity = "1", exclusive = false)
   PropertiesOption propertiesOption;
+
+  @CommandLine.Option(names = { "-p", "--prop" }, description = "Additional client properties")
+  Map<String, String> additionalProperties = new HashMap<>();
 
   @Option(names = { "--pretty" }, defaultValue = "false", description = "Print pretty/formatted JSON")
   boolean pretty;
@@ -55,6 +60,7 @@ public class Cli implements Callable<Integer> {
   @Override
   public Integer call() throws Exception {
     final var clientConfig = propertiesOption.load();
+    clientConfig.putAll(additionalProperties);
     boolean sr = clientConfig.containsKey("schema.registry.url");
 
     final var opts = new Opts(topics, prefix, sr);
@@ -99,9 +105,12 @@ public class Cli implements Callable<Integer> {
       return configPath
         .map(path -> {
           try {
-            final var p = new Properties();
-            p.load(Files.newInputStream(path));
-            return p;
+            final var props = new Properties();
+            props.load(Files.newInputStream(path));
+            if (contextOption != null && contextOption.kafkaContextName != null && !contextOption.kafkaContextName.isBlank()) {
+              props.putAll(contextOption.load());
+            }
+            return props;
           } catch (Exception e) {
             throw new IllegalArgumentException("ERROR: properties file at %s is failing to load".formatted(path));
           }

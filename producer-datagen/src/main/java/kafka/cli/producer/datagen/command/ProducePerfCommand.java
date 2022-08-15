@@ -16,7 +16,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "perf", description = "run performance tests")
-public class PerfCommand implements Callable<Integer> {
+public class ProducePerfCommand implements Callable<Integer> {
 
   @CommandLine.Option(names = { "-t", "--topic" }, description = "target Kafka topic name", required = true)
   String topicName;
@@ -31,7 +31,7 @@ public class PerfCommand implements Callable<Integer> {
   )
   long throughput = -1L;
 
-  @CommandLine.ArgGroup(multiplicity = "1")
+  @CommandLine.ArgGroup(multiplicity = "1", exclusive = false)
   Cli.PropertiesOption propertiesOption;
 
   @CommandLine.ArgGroup(multiplicity = "1")

@@ -10,9 +10,9 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import kafka.cli.producer.datagen.Cli.VersionProviderWithConfigProvider;
-import kafka.cli.producer.datagen.command.IntervalCommand;
+import kafka.cli.producer.datagen.command.ProduceIntervalCommand;
 import kafka.cli.producer.datagen.command.ListTopicsCommand;
-import kafka.cli.producer.datagen.command.PerfCommand;
+import kafka.cli.producer.datagen.command.ProducePerfCommand;
 import kafka.cli.producer.datagen.command.ProduceOnceCommand;
 import kafka.cli.producer.datagen.command.SampleCommand;
 import kafka.context.KafkaContexts;
@@ -29,7 +29,7 @@ import picocli.CommandLine.Option;
   descriptionHeading = "Kafka CLI - Producer Datagen",
   description = "Kafka Producer with Data generation",
   subcommands = {
-    PerfCommand.class, IntervalCommand.class, ProduceOnceCommand.class, SampleCommand.class, ListTopicsCommand.class,
+    ProducePerfCommand.class, ProduceIntervalCommand.class, ProduceOnceCommand.class, SampleCommand.class, ListTopicsCommand.class,
   }
 )
 public class Cli implements Callable<Integer> {
@@ -60,11 +60,14 @@ public class Cli implements Callable<Integer> {
       return configPath
         .map(path -> {
           try {
-            final var p = new Properties();
-            p.load(Files.newInputStream(path));
-            return p;
+            final var props = new Properties();
+            props.load(Files.newInputStream(path));
+            if (contextOption != null && contextOption.kafkaContextName != null && !contextOption.kafkaContextName.isBlank()) {
+              props.putAll(contextOption.load());
+            }
+            return props;
           } catch (Exception e) {
-            throw new IllegalArgumentException("ERROR: properties file at %s is failing to load".formatted(path));
+            throw new IllegalArgumentException("ERROR: properties file at %s is failing to load".formatted(path), e);
           }
         })
         .orElseGet(() -> {

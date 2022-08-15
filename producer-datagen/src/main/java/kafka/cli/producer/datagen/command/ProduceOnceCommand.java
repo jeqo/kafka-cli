@@ -19,7 +19,7 @@ public class ProduceOnceCommand implements Callable<Integer> {
   @CommandLine.Option(names = { "-t", "--topic" }, description = "target Kafka topic name", required = true)
   String topicName;
 
-  @CommandLine.ArgGroup(multiplicity = "1")
+  @CommandLine.ArgGroup(multiplicity = "1", exclusive = false)
   Cli.PropertiesOption propertiesOption;
 
   @CommandLine.ArgGroup(multiplicity = "1")
