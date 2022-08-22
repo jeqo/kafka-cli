@@ -1,9 +1,9 @@
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:revnumber: kafka-cli-context version 0.3.0
+:revnumber: kafka-cli-context version 0.4.0
 :manmanual: Kfk-ctx Manual
-:mansource: kafka-cli-context version 0.3.0
+:mansource: kafka-cli-context version 0.4.0
 :man-linkstyle: pass:[blue R < >]
 = kfk-ctx(1)
 
@@ -64,12 +64,6 @@ xref:kfk-ctx-test.adoc[*test*]::
 
 xref:kfk-ctx-properties.adoc[*properties*]::
   Get properties configurations for contexts
-
-xref:kfk-ctx-kcat.adoc[*kcat*]::
-  kcat command with properties from context
-
-xref:kfk-ctx-env.adoc[*env*]::
-  env command with properties from context
 
 xref:kfk-ctx-sr.adoc[*sr*]::
   Manage Schema Registry connection properties as contexts.

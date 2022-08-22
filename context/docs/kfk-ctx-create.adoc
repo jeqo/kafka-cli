@@ -19,8 +19,16 @@ kfk-ctx-create - Register a Kafka context. Destination: ~/.config/kfk-ctx/kafka.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*kfk-ctx create* [*--auth*=_<authType>_] [[*-u*=_<username>_] [*-p*[=_<password>_]]] _<name>_
-               _<bootstrapServers>_
+*kfk-ctx create* [*--ssl*] [*--auth*=_<authType>_]
+               [[*--truststore-certificates*=_<location>_] |
+               [[*--truststore-type*=_<type>_] [*--truststore-location*=_<location>_]
+               [*--truststore-password*[=_<password>_]]]] [[*--keystore-type*=_<type>_]
+               [*--keystore-location*=_<location>_] [*--keystore-password*
+               [=_<password>_]] [*--key-password*[=_<keyPassword>_]]]
+               [[*--private-key-location*=_<privateKey>_] [*--private-key-password*
+               [=_<password>_]]
+               [*--public-certificate-location*=_<publicCertificate>_]]
+               [[*-u*=_<username>_] [*-p*[=_<password>_]]] _<name>_ _<bootstrapServers>_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -35,10 +43,46 @@ Register a Kafka context. Destination: ~/.config/kfk-ctx/kafka.json
 == Options
 
 *--auth*=_<authType>_::
-  Authentication method (default: PLAINTEXT). Valid values: PLAINTEXT, SASL_PLAIN
+  Authentication method (default: PLAINTEXT). Valid values: PLAINTEXT, SASL_PLAIN, TLS, MTLS_KEYSTORE, MTLS_CERTIFICATE
+
+*--key-password*[=_<keyPassword>_]::
+  Keystore password
+
+*--keystore-location*=_<location>_::
+  Keystore location
+
+*--keystore-password*[=_<password>_]::
+  Keystore password
+
+*--keystore-type*=_<type>_::
+  Keystore type. Valid values: PKCS12, JKS, PEM
 
 *-p*, *--password*[=_<password>_]::
   Password authentication
+
+*--private-key-location*=_<privateKey>_::
+  Private Key (PEM) location
+
+*--private-key-password*[=_<password>_]::
+  Private Key password
+
+*--public-certificate-location*=_<publicCertificate>_::
+  Public certificate (PEM) location
+
+*--ssl*::
+  If the listener is encrypted with SSL/TLS or not
+
+*--truststore-certificates*=_<location>_::
+  Truststore certificates location (PEM file)
+
+*--truststore-location*=_<location>_::
+  Truststore location
+
+*--truststore-password*[=_<password>_]::
+  Truststore password
+
+*--truststore-type*=_<type>_::
+  Truststore type. Valid values: PKCS12, JKS, PEM
 
 *-u*, *--username*=_<username>_::
   Username authentication
