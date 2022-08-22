@@ -4,24 +4,22 @@ import static java.lang.System.err;
 import static java.lang.System.out;
 
 import java.util.concurrent.Callable;
+import kafka.context.sr.HttpNoAuth;
+import kafka.context.sr.HttpUsernamePasswordAuth;
+import kafka.context.sr.SchemaRegistryAuth;
 import kafka.context.sr.SchemaRegistryCluster;
 import kafka.context.sr.SchemaRegistryContext;
 import kafka.context.sr.SchemaRegistryContexts;
-import kafka.context.sr.auth.HttpNoAuth;
-import kafka.context.sr.auth.HttpUsernamePasswordAuth;
-import kafka.context.sr.auth.SchemaRegistryAuth;
 import picocli.CommandLine;
 
 @CommandLine.Command(
   name = "sr",
   subcommands = {
-    SchemaRegistryContextsCommand.CreateCommand.class,
-    SchemaRegistryContextsCommand.RenameCommand.class,
-    SchemaRegistryContextsCommand.DeleteCommand.class,
+    SchemaRegistryCli.CreateCommand.class, SchemaRegistryCli.RenameCommand.class, SchemaRegistryCli.DeleteCommand.class,
   },
   description = "Manage Schema Registry connection properties as contexts."
 )
-class SchemaRegistryContextsCommand implements Callable<Integer> {
+class SchemaRegistryCli implements Callable<Integer> {
 
   @CommandLine.Option(names = { "-v", "--verbose" })
   boolean verbose;
@@ -37,7 +35,10 @@ class SchemaRegistryContextsCommand implements Callable<Integer> {
     return 0;
   }
 
-  @CommandLine.Command(name = "create", description = "Register context. Destination: ~/.kafka/schema-registry.json")
+  @CommandLine.Command(
+    name = "create",
+    description = "Register context. Destination: ~/.config/kfk-ctx/schema-registry.json"
+  )
   static class CreateCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "Context name. e.g. `local`")
@@ -60,6 +61,7 @@ class SchemaRegistryContextsCommand implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
       var contexts = SchemaRegistryContexts.load();
+      if (contexts.has(name)) err.println("WARN: Context name already exists. Will be overwritten");
       try {
         final SchemaRegistryAuth auth =
           switch (authType) {
@@ -84,7 +86,10 @@ class SchemaRegistryContextsCommand implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(name = "rename", description = "Rename context. Destination: ~/.kafka/schema-registry.json")
+  @CommandLine.Command(
+    name = "rename",
+    description = "Rename context. Destination: ~/.config/kfk-ctx/schema-registry.json"
+  )
   static class RenameCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "Existing Schema Registry context name. e.g. `local`")
@@ -116,7 +121,10 @@ class SchemaRegistryContextsCommand implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(name = "delete", description = "Removes context. Destination: ~/.kafka/schema-registry.json")
+  @CommandLine.Command(
+    name = "delete",
+    description = "Removes context. Destination: ~/.config/kfk-ctx/schema-registry.json"
+  )
   static class DeleteCommand implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "Context name. e.g. `local`")

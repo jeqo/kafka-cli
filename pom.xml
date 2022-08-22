@@ -32,7 +32,7 @@
         <kafka.version>3.1.0</kafka.version>
         <confluent.version>7.0.1</confluent.version>
         <graalvm.version>22.2.0</graalvm.version>
-        <kafka-libs.version>0.4.2</kafka-libs.version>
+        <kafka-libs.version>0.6.0</kafka-libs.version>
         <jackson.version>2.13.3</jackson.version>
         <slf4j.version>1.7.36</slf4j.version>
         <junit.version>5.8.2</junit.version>

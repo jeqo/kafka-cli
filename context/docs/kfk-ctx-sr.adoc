@@ -45,13 +45,13 @@ Manage Schema Registry connection properties as contexts.
 == Commands
 
 xref:kfk-ctx-sr-create.adoc[*create*]::
-  Register context. Destination: ~/.kafka/schema-registry.json
+  Register context. Destination: ~/.config/kfk-ctx/schema-registry.json
 
 xref:kfk-ctx-sr-rename.adoc[*rename*]::
-  Rename context. Destination: ~/.kafka/schema-registry.json
+  Rename context. Destination: ~/.config/kfk-ctx/schema-registry.json
 
 xref:kfk-ctx-sr-delete.adoc[*delete*]::
-  Removes context. Destination: ~/.kafka/schema-registry.json
+  Removes context. Destination: ~/.config/kfk-ctx/schema-registry.json
 
 // end::picocli-generated-man-section-commands[]
 

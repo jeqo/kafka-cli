@@ -4,8 +4,6 @@ import static java.lang.System.err;
 import static java.lang.System.out;
 import static kafka.cli.context.Cli.CreateCommand;
 import static kafka.cli.context.Cli.DeleteCommand;
-import static kafka.cli.context.Cli.EnvCommand;
-import static kafka.cli.context.Cli.KCatCommand;
 import static kafka.cli.context.Cli.KFK_CTX_CMD;
 import static kafka.cli.context.Cli.PropertiesCommand;
 import static kafka.cli.context.Cli.TestCommand;
@@ -17,25 +15,33 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+import kafka.context.KafkaAuth;
+import kafka.context.KafkaCertificateAuth;
 import kafka.context.KafkaCluster;
 import kafka.context.KafkaContext;
 import kafka.context.KafkaContexts;
-import kafka.context.auth.KafkaAuth;
-import kafka.context.auth.KafkaNoAuth;
-import kafka.context.auth.KafkaUsernamePasswordAuth;
+import kafka.context.KafkaKeystoreAuth;
+import kafka.context.KafkaNoAuth;
+import kafka.context.KafkaTlsNoAuth;
+import kafka.context.KafkaUsernamePasswordAuth;
+import kafka.context.Keystore;
+import kafka.context.Truststore;
+import kafka.context.sr.HttpUsernamePasswordAuth;
 import kafka.context.sr.SchemaRegistryContexts;
-import kafka.context.sr.auth.HttpUsernamePasswordAuth;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
+import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
-@CommandLine.Command(
+@Command(
   name = KFK_CTX_CMD,
   versionProvider = Cli.VersionProviderWithConfigProvider.class,
   mixinStandardHelpOptions = true,
@@ -45,9 +51,7 @@ import picocli.CommandLine.Option;
     DeleteCommand.class,
     TestCommand.class,
     PropertiesCommand.class,
-    KCatCommand.class,
-    EnvCommand.class,
-    SchemaRegistryContextsCommand.class,
+    SchemaRegistryCli.class,
   },
   description = "Manage Kafka connection as contexts."
 )
@@ -59,7 +63,7 @@ public class Cli implements Callable<Integer> {
   boolean verbose;
 
   public static void main(String[] args) {
-    final int exitCode = new CommandLine(new Cli()).execute(args);
+    final int exitCode = new CommandLine(new Cli()).setCaseInsensitiveEnumValuesAllowed(true).execute(args);
     System.exit(exitCode);
   }
 
@@ -74,16 +78,16 @@ public class Cli implements Callable<Integer> {
     return 0;
   }
 
-  @CommandLine.Command(name = "create", description = "Register a Kafka context. Destination: ~/.kafka/kafka.json")
+  @Command(name = "create", description = "Register a Kafka context. Destination: ~/.config/kfk-ctx/kafka.json")
   static class CreateCommand implements Callable<Integer> {
 
-    @CommandLine.Parameters(index = "0", description = "Kafka context name. e.g. `local`")
+    @Parameters(index = "0", description = "Kafka context name. e.g. `local`")
     String name;
 
-    @CommandLine.Parameters(index = "1", description = "Bootstrap servers. e.g. `localhost:9092`")
+    @Parameters(index = "1", description = "Bootstrap servers. e.g. `localhost:9092`")
     String bootstrapServers;
 
-    @CommandLine.Option(
+    @Option(
       names = "--auth",
       description = "Authentication method (default: ${DEFAULT-VALUE}). Valid values: ${COMPLETION-CANDIDATES}",
       required = true,
@@ -91,22 +95,67 @@ public class Cli implements Callable<Integer> {
     )
     KafkaAuth.AuthType authType;
 
+    @Option(
+      names = { "--ssl" },
+      description = "If the listener is encrypted with SSL/TLS or not",
+      defaultValue = "true"
+    )
+    boolean isEncrypted;
+
+    @ArgGroup
+    TrustStoreOptions trustStoreOpts;
+
+    @ArgGroup(exclusive = false)
+    KeyStoreOptions keyStoreOpts;
+
+    @ArgGroup(exclusive = false)
+    CertificateOptions certOpts;
+
     @ArgGroup(exclusive = false)
     UsernamePasswordOptions usernamePasswordOptions;
 
     @Override
     public Integer call() throws Exception {
       final var contexts = KafkaContexts.load();
-
+      if (contexts.has(name)) err.println("WARN: Context name already exists. Will be overwritten");
       try {
         final KafkaAuth auth =
           switch (authType) {
-            case SASL_PLAIN -> KafkaUsernamePasswordAuth.build(
-              authType,
-              usernamePasswordOptions.username,
-              usernamePasswordOptions.password()
+            case SASL_PLAIN -> trustStoreOpts == null
+              ? KafkaUsernamePasswordAuth.build(
+                usernamePasswordOptions.username,
+                usernamePasswordOptions.password(),
+                isEncrypted
+              )
+              : KafkaUsernamePasswordAuth.build(
+                usernamePasswordOptions.username,
+                usernamePasswordOptions.password(),
+                trustStoreOpts.trustStore(),
+                isEncrypted
+              );
+            case MTLS_KEYSTORE -> KafkaKeystoreAuth.build(
+              keyStoreOpts.keystore(),
+              keyStoreOpts.keyPassword,
+              trustStoreOpts.trustStore()
             );
-            default -> new KafkaNoAuth();
+            case MTLS_CERTIFICATE -> trustStoreOpts == null
+              ? certOpts.password == null
+                ? KafkaCertificateAuth.build(certOpts.privateKey, certOpts.publicCertificate)
+                : KafkaCertificateAuth.build(certOpts.privateKey, certOpts.password, certOpts.publicCertificate)
+              : certOpts.password == null
+                ? KafkaCertificateAuth.build(
+                  certOpts.privateKey,
+                  certOpts.publicCertificate,
+                  trustStoreOpts.trustStore()
+                )
+                : KafkaCertificateAuth.build(
+                  certOpts.privateKey,
+                  certOpts.password,
+                  certOpts.publicCertificate,
+                  trustStoreOpts.trustStore()
+                );
+            case TLS -> KafkaTlsNoAuth.build(trustStoreOpts.trustStore());
+            default -> KafkaNoAuth.build();
           };
         final var ctx = new KafkaContext(name, new KafkaCluster(bootstrapServers, auth));
 
@@ -126,13 +175,13 @@ public class Cli implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(name = "rename", description = "Rename context. Destination: ~/.kafka/kafka.json")
+  @Command(name = "rename", description = "Rename context. Destination: ~/.config/kfk-ctx/kafka.json")
   static class RenameCommand implements Callable<Integer> {
 
-    @CommandLine.Parameters(index = "0", description = "Existing Kafka context name. e.g. `local`")
+    @Parameters(index = "0", description = "Existing Kafka context name. e.g. `local`")
     String oldName;
 
-    @CommandLine.Parameters(index = "1", description = "Name Kafka context name. e.g. `local`")
+    @Parameters(index = "1", description = "Name Kafka context name. e.g. `local`")
     String newName;
 
     @Override
@@ -158,10 +207,10 @@ public class Cli implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(name = "delete", description = "Removes context. Destination: ~/.kafka/kafka.json")
+  @Command(name = "delete", description = "Removes context. Destination: ~/.config/kfk-ctx/kafka.json")
   static class DeleteCommand implements Callable<Integer> {
 
-    @CommandLine.Parameters(index = "0", description = "Kafka context name. e.g. `local`")
+    @Parameters(index = "0", description = "Kafka context name. e.g. `local`")
     String name;
 
     @Override
@@ -186,10 +235,10 @@ public class Cli implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(name = "properties", description = "Get properties configurations for contexts")
+  @Command(name = "properties", description = "Get properties configurations for contexts")
   static class PropertiesCommand implements Callable<Integer> {
 
-    @CommandLine.Parameters(index = "0", description = "Kafka context name")
+    @Parameters(index = "0", description = "Kafka context name")
     String name;
 
     @Option(names = { "--schema-registry", "-sr" }, description = "Schema Registry context name")
@@ -226,10 +275,10 @@ public class Cli implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(name = "test", description = "Test cluster contexts")
+  @Command(name = "test", description = "Test cluster contexts")
   static class TestCommand implements Callable<Integer> {
 
-    @CommandLine.Parameters(index = "0", description = "Kafka context name")
+    @Parameters(index = "0", description = "Kafka context name")
     String name;
 
     @Option(names = { "--schema-registry", "-sr" }, description = "Schema Registry context name")
@@ -303,100 +352,96 @@ public class Cli implements Callable<Integer> {
     }
   }
 
-  @CommandLine.Command(name = "env", description = "env command with properties from context")
-  static class EnvCommand implements Callable<Integer> {
+  static class CertificateOptions {
 
-    @CommandLine.Parameters(index = "0", description = "Context name")
-    String name;
+    @Option(names = { "--private-key-location" }, description = "Private Key (PEM) location")
+    Path privateKey;
 
-    @Option(names = { "--schema-registry", "-sr" }, description = "Schema Registry context name")
-    Optional<String> schemeRegistryContext;
+    @Option(
+      names = { "--private-key-password" },
+      description = "Private Key password",
+      arity = "0..1",
+      interactive = true
+    )
+    String password;
 
-    @Option(names = { "--auth" }, description = "Include auth env variables")
-    boolean includeAuth;
+    @Option(names = { "--public-certificate-location" }, description = "Public certificate (PEM) location")
+    Path publicCertificate;
+  }
 
-    @Override
-    public Integer call() throws Exception {
-      final var contexts = KafkaContexts.load();
-      if (contexts.has(name)) {
-        final var ctx = contexts.get(name);
-        final var env = ctx.env(includeAuth);
+  static class KeyStoreOptions {
 
-        if (schemeRegistryContext.isPresent()) {
-          final var srContexts = SchemaRegistryContexts.load();
-          if (srContexts.has(schemeRegistryContext.get())) {
-            final var srCtx = srContexts.get(schemeRegistryContext.get());
-            final var srProps = srCtx.env(includeAuth);
+    @Option(names = { "--keystore-type" }, description = "Keystore type. Valid values: ${COMPLETION-CANDIDATES}")
+    Optional<KeystoreType> type;
 
-            out.println(env + "\n" + srProps);
-          } else {
-            System.err.printf(
-              "WARN: Schema Registry context %s does not exist. Schema Registry connection properties will not be included",
-              schemeRegistryContext.get()
-            );
-          }
-        } else {
-          out.println(env);
-        }
-      } else {
-        err.printf("Kafka context `%s` is not found%n", name);
-        return 1;
-      }
-      return 0;
+    @Option(names = { "--keystore-location" }, description = "Keystore location")
+    Path location;
+
+    @Option(names = { "--keystore-password" }, description = "Keystore password", arity = "0..1", interactive = true)
+    String password;
+
+    @Option(names = { "--key-password" }, description = "Keystore password", arity = "0..1", interactive = true)
+    String keyPassword;
+
+    public Keystore keystore() {
+      return type.map(t -> Keystore.build(t.name(), location, password)).orElse(Keystore.build(location, password));
     }
   }
 
-  @CommandLine.Command(name = "kcat", description = "kcat command with properties from context")
-  static class KCatCommand implements Callable<Integer> {
+  static class TrustStoreOptions {
 
-    @CommandLine.Parameters(index = "0", description = "Context name")
-    String name;
+    @ArgGroup
+    TrustStoreCertificateOptions certificateOptions;
 
-    @Option(names = { "--schema-registry", "-sr" }, description = "Schema Registry context name")
-    Optional<String> schemeRegistryContext;
+    @ArgGroup(exclusive = false)
+    TrustStoreKeystoreOptions keystoreOptions;
 
-    @Override
-    public Integer call() throws Exception {
-      final var contexts = KafkaContexts.load();
-      if (contexts.has(name)) {
-        final var ctx = contexts.get(name);
-        final var kcat = ctx.kcat();
-
-        if (schemeRegistryContext.isPresent()) {
-          final var srContexts = SchemaRegistryContexts.load();
-          if (srContexts.has(schemeRegistryContext.get())) {
-            final var srCtx = srContexts.get(schemeRegistryContext.get());
-            final var srProps = srCtx.kcat();
-
-            out.println(kcat + srProps);
-          } else {
-            System.err.printf(
-              "WARN: Schema Registry context %s does not exist. Schema Registry connection properties will not be included",
-              schemeRegistryContext.get()
-            );
-          }
-        } else {
-          out.println(kcat);
-        }
-      } else {
-        err.printf("Kafka context `%s` is not found%n", name);
-        return 1;
-      }
-      return 0;
+    public Truststore trustStore() {
+      if (certificateOptions != null) return Truststore.build(certificateOptions.location);
+      if (keystoreOptions != null) {
+        var keystore = keystoreOptions.type
+          .map(keystoreType -> Keystore.build(keystoreType.name(), keystoreOptions.location, keystoreOptions.password))
+          .orElseGet(() -> Keystore.build(keystoreOptions.location, keystoreOptions.password));
+        return Truststore.build(keystore);
+      } else throw new IllegalStateException("No truststore defined.");
     }
+  }
+
+  static class TrustStoreCertificateOptions {
+
+    @Option(names = { "--truststore-certificates" }, description = "Truststore certificates location (PEM file)")
+    Path location;
+  }
+
+  static class TrustStoreKeystoreOptions {
+
+    @Option(names = { "--truststore-type" }, description = "Truststore type. Valid values: ${COMPLETION-CANDIDATES}")
+    Optional<KeystoreType> type;
+
+    @Option(names = { "--truststore-location" }, description = "Truststore location")
+    Path location;
+
+    @Option(
+      names = { "--truststore-password" },
+      description = "Truststore password",
+      arity = "0..1",
+      interactive = true
+    )
+    String password;
+  }
+
+  enum KeystoreType {
+    PKCS12,
+    JKS,
+    PEM,
   }
 
   static class UsernamePasswordOptions {
 
-    @CommandLine.Option(names = { "--username", "-u" }, description = "Username authentication")
+    @Option(names = { "--username", "-u" }, description = "Username authentication")
     String username;
 
-    @CommandLine.Option(
-      names = { "--password", "-p" },
-      description = "Password authentication",
-      arity = "0..1",
-      interactive = true
-    )
+    @Option(names = { "--password", "-p" }, description = "Password authentication", arity = "0..1", interactive = true)
     String password;
 
     public String password() {

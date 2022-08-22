@@ -51,13 +51,13 @@ Manage Kafka connection as contexts.
 == Commands
 
 xref:kfk-ctx-create.adoc[*create*]::
-  Register a Kafka context. Destination: ~/.kafka/kafka.json
+  Register a Kafka context. Destination: ~/.config/kfk-ctx/kafka.json
 
 xref:kfk-ctx-rename.adoc[*rename*]::
-  Rename context. Destination: ~/.kafka/kafka.json
+  Rename context. Destination: ~/.config/kfk-ctx/kafka.json
 
 xref:kfk-ctx-delete.adoc[*delete*]::
-  Removes context. Destination: ~/.kafka/kafka.json
+  Removes context. Destination: ~/.config/kfk-ctx/kafka.json
 
 xref:kfk-ctx-test.adoc[*test*]::
   Test cluster contexts

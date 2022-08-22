@@ -12,7 +12,7 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-kfk-ctx-create - Register a Kafka context. Destination: ~/.kafka/kafka.json
+kfk-ctx-create - Register a Kafka context. Destination: ~/.config/kfk-ctx/kafka.json
 
 // end::picocli-generated-man-section-name[]
 
@@ -27,7 +27,7 @@ kfk-ctx-create - Register a Kafka context. Destination: ~/.kafka/kafka.json
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Register a Kafka context. Destination: ~/.kafka/kafka.json
+Register a Kafka context. Destination: ~/.config/kfk-ctx/kafka.json
 
 // end::picocli-generated-man-section-description[]
 

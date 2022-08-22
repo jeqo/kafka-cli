@@ -12,7 +12,7 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-kfk-ctx-sr-delete - Removes context. Destination: ~/.kafka/schema-registry.json
+kfk-ctx-sr-delete - Removes context. Destination: ~/.config/kfk-ctx/schema-registry.json
 
 // end::picocli-generated-man-section-name[]
 
@@ -26,7 +26,7 @@ kfk-ctx-sr-delete - Removes context. Destination: ~/.kafka/schema-registry.json
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Removes context. Destination: ~/.kafka/schema-registry.json
+Removes context. Destination: ~/.config/kfk-ctx/schema-registry.json
 
 // end::picocli-generated-man-section-description[]
 
