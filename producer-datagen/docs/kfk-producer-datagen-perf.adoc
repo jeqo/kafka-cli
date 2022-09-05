@@ -19,11 +19,11 @@ kfk-producer-datagen-perf - run performance tests
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*kfk-producer-datagen perf* [*-f*=_<format>_] [*-k*=_<throughput>_] *-n*=_<numRecords>_
-                          *-t*=_<topicName>_ [*-p*=_<String=String>_]...
-                          (*-c*=_<configPath>_ | [*--kafka*=_<kafkaContextName>_
-                          [*--sr*=_<srContextName>_]]) (*-q*=_<quickstart>_ |
-                          *-s*=_<schemaPath>_)
+*kfk-producer-datagen perf* [*-k*=_<throughput>_] *-n*=_<numRecords>_ *-t*=_<topicName>_
+                          [*-p*=_<String=String>_]... ([*-c*=_<configPath>_]
+                          [*--kafka*=_<kafkaContextName>_ [*--sr*=_<srContextName>_]])
+                          [[*--key*=_<keyFieldName>_] [*-f*=_<format>_]
+                          (*-q*=_<quickstart>_ | *-s*=_<schemaPath>_)]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -48,6 +48,9 @@ run performance tests
 
 *--kafka*=_<kafkaContextName>_::
   Kafka context name
+
+*--key*=_<keyFieldName>_::
+  Key field name. When using custom schema, if empty, it uses null keys
 
 *-n*, *--num-records*=_<numRecords>_::
   Number of records to produce

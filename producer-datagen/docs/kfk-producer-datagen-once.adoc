@@ -19,10 +19,10 @@ kfk-producer-datagen-once - produce once
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*kfk-producer-datagen once* [*-f*=_<format>_] *-t*=_<topicName>_ [*-p*=_<String=String>_]...
-                          (*-c*=_<configPath>_ | [*--kafka*=_<kafkaContextName>_
-                          [*--sr*=_<srContextName>_]]) (*-q*=_<quickstart>_ |
-                          *-s*=_<schemaPath>_)
+*kfk-producer-datagen once* *-t*=_<topicName>_ [*-p*=_<String=String>_]...
+                          ([*-c*=_<configPath>_] [*--kafka*=_<kafkaContextName>_
+                          [*--sr*=_<srContextName>_]]) [[*--key*=_<keyFieldName>_]
+                          [*-f*=_<format>_] (*-q*=_<quickstart>_ | *-s*=_<schemaPath>_)]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -44,6 +44,9 @@ produce once
 
 *--kafka*=_<kafkaContextName>_::
   Kafka context name
+
+*--key*=_<keyFieldName>_::
+  Key field name. When using custom schema, if empty, it uses null keys
 
 *-p*, *--prop*=_<String=String>_::
   Additional client properties
