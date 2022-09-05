@@ -53,6 +53,7 @@ jobs:
         with:
           name: artifacts
           path: |
+            producer-datagen/target/*.jar
             producer-datagen/target/*.zip
             producer-datagen/target/*.tar.gz
 
