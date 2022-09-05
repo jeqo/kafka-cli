@@ -119,6 +119,7 @@ jobs:
         with:
           name: artifacts
           path: |
+            context/target/*.jar
             context/target/*.zip
             context/target/*.tar.gz
 
