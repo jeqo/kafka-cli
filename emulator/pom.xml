@@ -292,7 +292,7 @@
                                         <type>SINGLE_JAR</type>
                                         <artifacts>
                                             <artifact>
-                                                <path>tar/kafka-cli-emulator-{{projectVersion}}.jar</path>
+                                                <path>target/kafka-cli-emulator-{{projectVersion}}.jar</path>
                                             </artifact>
                                         </artifacts>
                                     </kfk-emulator-jar>
