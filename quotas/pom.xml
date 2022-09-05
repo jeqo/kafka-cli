@@ -255,7 +255,7 @@
                                         <mainClass>kafka.cli.quotas.Cli</mainClass>
                                     </java>
                                     <snapshot>
-                                        <label>{{ projectVersionNumber }}-early-access</label>
+                                        <label>cli-quotas-{{ projectVersionNumber }}-early-access</label>
                                     </snapshot>
                                 </project>
                                 <release>

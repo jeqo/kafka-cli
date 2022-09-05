@@ -236,7 +236,7 @@
                                         <mainClass>kafka.cli.cluster.state.Cli</mainClass>
                                     </java>
                                     <snapshot>
-                                        <label>{{ projectVersionNumber }}-early-access</label>
+                                        <label>cli-cluster-state-{{ projectVersionNumber }}-early-access</label>
                                     </snapshot>
                                 </project>
                                 <release>

@@ -252,7 +252,7 @@
                                         <mainClass>kafka.cli.context.Cli</mainClass>
                                     </java>
                                     <snapshot>
-                                        <label>{{ projectVersionNumber }}-early-access</label>
+                                        <label>cli-context-{{ projectVersionNumber }}-early-access</label>
                                     </snapshot>
                                 </project>
                                 <release>

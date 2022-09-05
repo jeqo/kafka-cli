@@ -264,7 +264,7 @@
                                         <mainClass>kafka.cli.producer.datagen.Cli</mainClass>
                                     </java>
                                     <snapshot>
-                                        <label>{{ projectVersionNumber }}-early-access</label>
+                                        <label>cli-producer-datagen-{{ projectVersionNumber }}-early-access</label>
                                     </snapshot>
                                 </project>
                                 <release>
