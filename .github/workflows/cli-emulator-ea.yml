@@ -53,6 +53,7 @@ jobs:
         with:
           name: artifacts
           path: |
+            emulator/target/*.jar
             emulator/target/*.zip
             emulator/target/*.tar.gz
 

@@ -288,11 +288,12 @@
                                 </packagers>
                                 <distributions>
                                     <kfk-emulator-jar>
-                                        <name>kfk-emulator-jar</name>
+                                        <name>kfk-emulator</name>
                                         <type>SINGLE_JAR</type>
                                         <artifacts>
                                             <artifact>
-                                                <path>target/kafka-cli-emulator-{{projectVersion}}.jar</path>
+                                                <path>{{artifactsDir}}/kafka-cli-emulator-{{projectVersion}}.jar</path>
+                                                <transform>artifacts/{{distributionName}}.jar</transform>
                                             </artifact>
                                         </artifacts>
                                     </kfk-emulator-jar>
