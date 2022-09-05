@@ -20,10 +20,10 @@ kfk-emulator-record - Record topic events
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*kfk-emulator record* [*-k*=_<keyFormat>_] [*-p*=_<pollTimeout>_] [*-v*=_<valueFormat>_]
-                    [*-t*=_<topics>_]... (*-c*=_<configPath>_ |
-                    [*--kafka*=_<kafkaContextName>_ [*--sr*=_<srContextName>_]])
-                    [*--start-from-ts*=_<fromTime>_ |
+*kfk-emulator record* [*-k*=_<keyFormat>_] [*--poll-timeout*=_<pollTimeout>_]
+                    [*-v*=_<valueFormat>_] [*-p*=_<String=String>_]... [*-t*=_<topics>_]...
+                    (*-c*=_<configPath>_ | [*--kafka*=_<kafkaContextName>_
+                    [*--sr*=_<srContextName>_]]) [*--start-from-ts*=_<fromTime>_ |
                     *--start-from-offsets*=_<String=Long>_
                     [*--start-from-offsets*=_<String=Long>_]...] [[*--end-now*] |
                     *-n*=_<recordsPerPartition>_ | *--end-at-ts*=_<toTime>_ |
@@ -64,7 +64,10 @@ Record topic events
 *-n*, *--records*=_<recordsPerPartition>_::
   Per partition
 
-*-p*, *--poll-timeout*=_<pollTimeout>_::
+*-p*, *--prop*=_<String=String>_::
+  Additional client properties
+
+*--poll-timeout*=_<pollTimeout>_::
   Seconds to wait for data to arrive to topic partitions
 
 *--sr*=_<srContextName>_::
