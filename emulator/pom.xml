@@ -287,8 +287,8 @@
                                     </brew>
                                 </packagers>
                                 <distributions>
-                                    <kfk-emulator-jar>
-                                        <name>kfk-emulator</name>
+                                    <kfk-emulator-exec>
+                                        <name>kfk-emulator-exec</name>
                                         <type>SINGLE_JAR</type>
                                         <artifacts>
                                             <artifact>
@@ -296,7 +296,7 @@
                                                 <transform>artifacts/{{distributionName}}.jar</transform>
                                             </artifact>
                                         </artifacts>
-                                    </kfk-emulator-jar>
+                                    </kfk-emulator-exec>
                                     <kfk-emulator>
                                         <name>kfk-emulator</name>
                                         <type>NATIVE_IMAGE</type>
