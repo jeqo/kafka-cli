@@ -1,9 +1,9 @@
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:revnumber: kafka-cli-context version 0.4.0
+:revnumber: kafka-cli-context version 0.4.1
 :manmanual: Kfk-ctx Manual
-:mansource: kafka-cli-context version 0.4.0
+:mansource: kafka-cli-context version 0.4.1
 :man-linkstyle: pass:[blue R < >]
 = kfk-ctx(1)
 
