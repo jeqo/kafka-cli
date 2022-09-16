@@ -1,18 +1,24 @@
 package kafka.cli.producer.datagen;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.fge.avro.Avro2JsonSchemaProcessor;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.DevNullProcessingReport;
+import com.github.fge.jsonschema.core.tree.SimpleJsonTree;
+import com.github.fge.jsonschema.core.util.ValueHolder;
 import io.confluent.avro.random.generator.Generator;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Parser;
@@ -83,6 +89,24 @@ public class PayloadGenerator {
       return outputStream.toString();
     } catch (IOException e) {
       throw new RuntimeException("Error converting to json", e);
+    }
+  }
+
+  JsonNode toJsonSr(GenericRecord record) {
+    try {
+      final var mapper = new ObjectMapper();
+      final var json = toJson(record);
+      final var jsonNodeWrapper = new ObjectNode(JsonNodeFactory.instance);
+      final var jsonNodePayload = mapper.readTree(json);
+      final var avroToJsonSchema = new Avro2JsonSchemaProcessor();
+      final var report = new DevNullProcessingReport();
+      final var tree = new SimpleJsonTree(mapper.readTree(schema()));
+      final var jsonSchema = avroToJsonSchema.process(report, ValueHolder.hold(tree));
+      jsonNodeWrapper.set("schema", jsonSchema.getValue().getBaseNode());
+      jsonNodeWrapper.set("payload", jsonNodePayload);
+      return jsonNodeWrapper;
+    } catch (ProcessingException | IOException e) {
+      throw new RuntimeException("Error converting to JsonNode", e);
     }
   }
 
@@ -174,21 +198,22 @@ public class PayloadGenerator {
 
   public enum Format {
     JSON,
+    JSON_SR,
     AVRO,
   }
 
   @SuppressWarnings("unchecked")
   public static Serializer<Object> valueSerializer(Format format, Properties producerConfig) {
-    Serializer<Object> valueSerializer;
-    if (format.equals(Format.AVRO)) {
-      valueSerializer = new KafkaAvroSerializer();
-      valueSerializer.configure(
-        producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
-        false
-      );
-    } else {
-      valueSerializer = (Serializer) new StringSerializer();
-    }
+    Serializer<Object> valueSerializer =
+      switch (format) {
+        case AVRO -> new KafkaAvroSerializer();
+        case JSON_SR -> new KafkaJsonSchemaSerializer();
+        default -> (Serializer) new StringSerializer();
+      };
+    valueSerializer.configure(
+      producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
+      false
+    );
     return valueSerializer;
   }
 

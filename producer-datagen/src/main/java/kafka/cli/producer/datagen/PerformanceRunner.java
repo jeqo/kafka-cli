@@ -48,11 +48,12 @@ public class PerformanceRunner {
       payload = payloadGenerator.get();
       key = payloadGenerator.key(payload);
 
-      if (payloadGenerator.format.equals(Format.AVRO)) {
-        value = payload;
-      } else {
-        value = payloadGenerator.toJson(payload);
-      }
+      value =
+        switch (payloadGenerator.format) {
+          case AVRO -> payload;
+          case JSON_SR -> payloadGenerator.toJsonSr(payload);
+          default -> payloadGenerator.toJson(payload);
+        };
 
       if (config.transactionsEnabled() && currentTransactionSize == 0) {
         producer.beginTransaction();

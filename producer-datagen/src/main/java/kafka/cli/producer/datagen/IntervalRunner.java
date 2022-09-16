@@ -57,11 +57,12 @@ public class IntervalRunner {
     var key = payloadGenerator.key(payload);
     Object value;
 
-    if (payloadGenerator.format.equals(Format.AVRO)) {
-      value = payload;
-    } else {
-      value = payloadGenerator.toJson(payload);
-    }
+    value =
+      switch (payloadGenerator.format) {
+        case AVRO -> payload;
+        case JSON_SR -> payloadGenerator.toJsonSr(payload);
+        default -> payloadGenerator.toJson(payload);
+      };
 
     var sendStartMs = System.currentTimeMillis();
     var cb = stats.nextCompletion(sendStartMs, sample.length, stats);
