@@ -227,7 +227,7 @@
                                     --initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator
                                 </buildArg>
                                 <buildArg>
-                                    --initialize-at-build-time=${graalvm.at-build-time.slf4j},${graalvm.at-build-time.kafka},${graalvm.at-build-time.json}
+                                    --initialize-at-build-time=${graalvm.at-build-time.slf4j},${graalvm.at-build-time.kafka},${graalvm.at-build-time.json},org.joda.time
                                 </buildArg>
                                 <buildArg>--enable-url-protocols=http</buildArg>
                                 <buildArg>--enable-url-protocols=https</buildArg>
