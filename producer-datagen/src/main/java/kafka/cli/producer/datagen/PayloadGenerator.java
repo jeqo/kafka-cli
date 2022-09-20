@@ -1,6 +1,10 @@
 package kafka.cli.producer.datagen;
 
 import io.confluent.avro.random.generator.Generator;
+import io.confluent.connect.avro.AvroConverter;
+import io.confluent.connect.avro.AvroData;
+import io.confluent.connect.json.JsonSchemaConverter;
+import io.confluent.connect.protobuf.ProtobufConverter;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -9,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Random;
@@ -24,6 +29,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.connect.json.JsonConverter;
+import org.apache.kafka.connect.storage.Converter;
 
 /** Datagen side */
 public class PayloadGenerator {
@@ -31,9 +38,13 @@ public class PayloadGenerator {
   final Format format;
   final Random random;
   final Generator generator;
+  final Converter converter;
+  final AvroData avroData;
+  final Schema avroSchema;
+  final org.apache.kafka.connect.data.Schema connectSchema;
   final String keyFieldName;
 
-  public PayloadGenerator(Config config) {
+  public PayloadGenerator(Config config, Properties producerConfig) {
     this.format = config.format();
     this.random = new Random();
     config
@@ -45,6 +56,38 @@ public class PayloadGenerator {
 
     this.generator = new Generator.Builder().random(random).generation(config.count()).schema(config.schema()).build();
     this.keyFieldName = config.keyFieldName();
+    this.avroData = new AvroData(1);
+    this.avroSchema = config.schema();
+    this.connectSchema = avroData.toConnectSchema(config.schema());
+    this.converter = switch (this.format) {
+      case JSON -> {
+        var jsonConverter = new JsonConverter();
+        var schemasEnabled = producerConfig.getProperty("schemas.enabled", "false");
+        jsonConverter.configure(Map.of("schemas.enable", schemasEnabled, "converter.type", "value"));
+        yield jsonConverter;
+      }
+      case AVRO -> {
+        var avroConverter = new AvroConverter();
+        avroConverter.configure(
+                producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
+                false);
+        yield avroConverter;
+      }
+      case PROTOBUF -> {
+        var avroConverter = new ProtobufConverter();
+        avroConverter.configure(
+                producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
+                false);
+        yield avroConverter;
+      }
+      case JSON_SCHEMA -> {
+        var avroConverter = new JsonSchemaConverter();
+        avroConverter.configure(
+                producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
+                false);
+        yield avroConverter;
+      }
+    };
   }
 
   public GenericRecord get() {
@@ -60,16 +103,11 @@ public class PayloadGenerator {
     return (GenericRecord) generatedObject;
   }
 
-  public ProducerRecord<String, Object> record(String topicName) {
+  public ProducerRecord<String, byte[]> record(String topicName) {
     final var record = get();
-
-    final Object value;
-    if (format.equals(Format.JSON)) {
-      value = toJson(record);
-    } else {
-      value = record;
-    }
-    return new ProducerRecord<>(topicName, key(record), value);
+    final var key = key(record);
+    final var value = value(topicName, record);
+    return new ProducerRecord<>(topicName, key, value);
   }
 
   String toJson(GenericRecord record) {
@@ -118,6 +156,11 @@ public class PayloadGenerator {
 
   public String keyFieldName() {
     return keyFieldName;
+  }
+
+  public byte[] value(String topicName, GenericRecord payload) {
+    final var schemaAndValue = avroData.toConnectData(avroSchema, payload);
+    return converter.fromConnectData(topicName, schemaAndValue.schema(), schemaAndValue.value());
   }
 
   public record Config(
@@ -175,6 +218,8 @@ public class PayloadGenerator {
   public enum Format {
     JSON,
     AVRO,
+    JSON_SCHEMA,
+    PROTOBUF
   }
 
   @SuppressWarnings("unchecked")

@@ -11,6 +11,7 @@ import kafka.cli.producer.datagen.PerformanceRunner;
 import kafka.cli.producer.datagen.Stats;
 import kafka.cli.producer.datagen.ThroughputThrottler;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import picocli.CommandLine;
 
@@ -52,7 +53,7 @@ public class ProducePerfCommand implements Callable<Integer> {
     producerConfig.putAll(additionalProperties);
 
     var keySerializer = new StringSerializer();
-    var valueSerializer = PayloadGenerator.valueSerializer(schemaOpts.format(), producerConfig);
+    var valueSerializer = new ByteArraySerializer();
 
     try (var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)) {
       final var config = new PerformanceRunner.Config(
@@ -62,7 +63,7 @@ public class ProducePerfCommand implements Callable<Integer> {
         transactionDurationMs,
         shouldPrintMetrics
       );
-      final var payloadGenerator = new PayloadGenerator(schemaOpts.config());
+      final var payloadGenerator = new PayloadGenerator(schemaOpts.config(), producerConfig);
       final var throughputThrottler = new ThroughputThrottler(System.currentTimeMillis(), throughput);
       final var stats = new Stats(numRecords, reportingIntervalMs);
 

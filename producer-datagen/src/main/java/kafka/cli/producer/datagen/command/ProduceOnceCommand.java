@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 import kafka.cli.producer.datagen.Cli;
 import kafka.cli.producer.datagen.PayloadGenerator;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import picocli.CommandLine;
 
@@ -33,10 +33,10 @@ public class ProduceOnceCommand implements Callable<Integer> {
     if (producerConfig == null) return 1;
     producerConfig.putAll(additionalProperties);
     var keySerializer = new StringSerializer();
-    Serializer<Object> valueSerializer = PayloadGenerator.valueSerializer(schemaOpts.format(), producerConfig);
+    var valueSerializer = new ByteArraySerializer();
 
     try (var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)) {
-      var pg = new PayloadGenerator(schemaOpts.config());
+      var pg = new PayloadGenerator(schemaOpts.config(), producerConfig);
 
       out.println("Avro Schema used to generate records:");
       out.println(pg.schema());
