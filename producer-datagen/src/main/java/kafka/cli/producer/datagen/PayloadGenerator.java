@@ -59,35 +59,39 @@ public class PayloadGenerator {
     this.avroData = new AvroData(1);
     this.avroSchema = config.schema();
     this.connectSchema = avroData.toConnectSchema(config.schema());
-    this.converter = switch (this.format) {
-      case JSON -> {
-        var jsonConverter = new JsonConverter();
-        var schemasEnabled = producerConfig.getProperty("schemas.enabled", "false");
-        jsonConverter.configure(Map.of("schemas.enable", schemasEnabled, "converter.type", "value"));
-        yield jsonConverter;
-      }
-      case AVRO -> {
-        var avroConverter = new AvroConverter();
-        avroConverter.configure(
-                producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
-                false);
-        yield avroConverter;
-      }
-      case PROTOBUF -> {
-        var avroConverter = new ProtobufConverter();
-        avroConverter.configure(
-                producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
-                false);
-        yield avroConverter;
-      }
-      case JSON_SCHEMA -> {
-        var avroConverter = new JsonSchemaConverter();
-        avroConverter.configure(
-                producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
-                false);
-        yield avroConverter;
-      }
-    };
+    this.converter =
+      switch (this.format) {
+        case JSON -> {
+          var jsonConverter = new JsonConverter();
+          var schemasEnabled = producerConfig.getProperty("schemas.enabled", "false");
+          jsonConverter.configure(Map.of("schemas.enable", schemasEnabled, "converter.type", "value"));
+          yield jsonConverter;
+        }
+        case AVRO -> {
+          var avroConverter = new AvroConverter();
+          avroConverter.configure(
+            producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
+            false
+          );
+          yield avroConverter;
+        }
+        case PROTOBUF -> {
+          var avroConverter = new ProtobufConverter();
+          avroConverter.configure(
+            producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
+            false
+          );
+          yield avroConverter;
+        }
+        case JSON_SCHEMA -> {
+          var avroConverter = new JsonSchemaConverter();
+          avroConverter.configure(
+            producerConfig.keySet().stream().collect(Collectors.toMap(String::valueOf, producerConfig::get)),
+            false
+          );
+          yield avroConverter;
+        }
+      };
   }
 
   public GenericRecord get() {
@@ -219,7 +223,7 @@ public class PayloadGenerator {
     JSON,
     AVRO,
     JSON_SCHEMA,
-    PROTOBUF
+    PROTOBUF,
   }
 
   @SuppressWarnings("unchecked")
