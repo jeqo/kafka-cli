@@ -2,7 +2,6 @@ package kafka.cli.producer.datagen;
 
 import java.util.Map;
 import java.util.TreeMap;
-import kafka.cli.producer.datagen.PayloadGenerator.Format;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -14,14 +13,14 @@ import org.apache.kafka.common.MetricName;
 public class PerformanceRunner {
 
   final Config config;
-  final KafkaProducer<String, Object> producer;
+  final KafkaProducer<String, byte[]> producer;
   final PayloadGenerator payloadGenerator;
   final ThroughputThrottler throttler;
   final Stats stats;
 
   public PerformanceRunner(
     final Config config,
-    final KafkaProducer<String, Object> producer,
+    final KafkaProducer<String, byte[]> producer,
     final PayloadGenerator payloadGenerator,
     final ThroughputThrottler throughputThrottler,
     final Stats stats
@@ -37,7 +36,7 @@ public class PerformanceRunner {
     GenericRecord payload;
     Object value;
     String key;
-    ProducerRecord<String, Object> record;
+    ProducerRecord<String, byte[]> record;
 
     int currentTransactionSize = 0;
     long transactionStartTime = 0;
@@ -45,21 +44,12 @@ public class PerformanceRunner {
     var sample = payloadGenerator.sample();
 
     for (long i = 0; i < config.records(); i++) {
-      payload = payloadGenerator.get();
-      key = payloadGenerator.key(payload);
-
-      if (payloadGenerator.format.equals(Format.AVRO)) {
-        value = payload;
-      } else {
-        value = payloadGenerator.toJson(payload);
-      }
-
       if (config.transactionsEnabled() && currentTransactionSize == 0) {
         producer.beginTransaction();
         transactionStartTime = System.currentTimeMillis();
       }
 
-      record = new ProducerRecord<>(config.topicName(), key, value);
+      record = payloadGenerator.record(config.topicName());
 
       var sendStartMs = System.currentTimeMillis();
       var cb = stats.nextCompletion(sendStartMs, sample.length, stats);

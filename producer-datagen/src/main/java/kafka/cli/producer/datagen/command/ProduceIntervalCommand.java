@@ -10,7 +10,7 @@ import kafka.cli.producer.datagen.IntervalRunner;
 import kafka.cli.producer.datagen.PayloadGenerator;
 import kafka.cli.producer.datagen.Stats;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import picocli.CommandLine;
 
@@ -48,10 +48,10 @@ public class ProduceIntervalCommand implements Callable<Integer> {
     producerConfig.putAll(additionalProperties);
 
     var keySerializer = new StringSerializer();
-    Serializer<Object> valueSerializer = PayloadGenerator.valueSerializer(schemaOpts.format(), producerConfig);
+    var valueSerializer = new ByteArraySerializer();
 
     try (var producer = new KafkaProducer<>(producerConfig, keySerializer, valueSerializer)) {
-      final var payloadGenerator = new PayloadGenerator(schemaOpts.config());
+      final var payloadGenerator = new PayloadGenerator(schemaOpts.config(), producerConfig);
       final var stats = new Stats(numRecords, reportingIntervalMs);
       final var config = new IntervalRunner.Config(topicName, numRecords, intervalMs);
 

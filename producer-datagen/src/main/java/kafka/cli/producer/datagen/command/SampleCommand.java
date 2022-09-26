@@ -4,6 +4,7 @@ import static java.lang.System.out;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import kafka.cli.producer.datagen.Cli;
 import kafka.cli.producer.datagen.PayloadGenerator;
@@ -33,7 +34,8 @@ public class SampleCommand implements Callable<Integer> {
         1,
         PayloadGenerator.Format.JSON,
         null
-      )
+      ),
+      new Properties()
     );
     if (schema) {
       final var schema = json.readTree(payloadGenerator.schema());

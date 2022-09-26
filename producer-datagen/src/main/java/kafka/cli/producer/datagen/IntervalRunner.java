@@ -1,20 +1,18 @@
 package kafka.cli.producer.datagen;
 
 import java.io.IOException;
-import kafka.cli.producer.datagen.PayloadGenerator.Format;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 
 public class IntervalRunner {
 
   final Config config;
-  final KafkaProducer<String, Object> producer;
+  final KafkaProducer<String, byte[]> producer;
   final PayloadGenerator payloadGenerator;
   final Stats stats;
 
   public IntervalRunner(
     Config config,
-    KafkaProducer<String, Object> producer,
+    KafkaProducer<String, byte[]> producer,
     PayloadGenerator payloadGenerator,
     Stats stats
   ) {
@@ -53,19 +51,9 @@ public class IntervalRunner {
   }
 
   void runOnce() {
-    var payload = payloadGenerator.get();
-    var key = payloadGenerator.key(payload);
-    Object value;
-
-    if (payloadGenerator.format.equals(Format.AVRO)) {
-      value = payload;
-    } else {
-      value = payloadGenerator.toJson(payload);
-    }
-
     var sendStartMs = System.currentTimeMillis();
     var cb = stats.nextCompletion(sendStartMs, sample.length, stats);
-    var record = new ProducerRecord<>(config.topicName(), key, value);
+    var record = payloadGenerator.record(config.topicName());
 
     producer.send(record, cb);
 
