@@ -120,6 +120,7 @@
         <module>producer-datagen</module>
         <module>quotas</module>
         <module>emulator</module>
+        <module>ak</module>
     </modules>
 
     <dependencyManagement>
