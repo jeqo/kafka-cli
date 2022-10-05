@@ -4,6 +4,9 @@ Current CLIs under Apache Kafka project:
 
 - admin (24):
   - [ ] topics (`kafka-topics`)
+    - Changes:
+      - Change operation options with sub-commands
+      - Allow creating multiple topics with same configuration
     - replica
       - [ ] verification (`kafka-replica-verification`)
       - [ ] leader-election (`kafka-leader-election`)
