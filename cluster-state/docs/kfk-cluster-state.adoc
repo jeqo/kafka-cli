@@ -1,9 +1,9 @@
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:revnumber: kafka-cli-cluster-state version 0.3.0
+:revnumber: kafka-cli-cluster-state version 0.3.1
 :manmanual: Kfk-cluster-state Manual
-:mansource: kafka-cli-cluster-state version 0.3.0
+:mansource: kafka-cli-cluster-state version 0.3.1
 :man-linkstyle: pass:[blue R < >]
 = kfk-cluster-state(1)
 
@@ -21,9 +21,9 @@ kfk-cluster-state - List Kafka topics with metadata, partitions, replica placeme
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*kfk-cluster-state* [*-hV*] [*--pretty*] [*-p*=_<prefix>_] [*-t*=_<topics>_]...
-                  (*-c*=_<configPath>_ | [*--kafka*=_<kafkaContextName>_
-                  [*--sr*=_<srContextName>_]])
+*kfk-cluster-state* [*-hV*] [*--pretty*] [*-p*=_<prefix>_] [*--prop*=_<String=String>_]...
+                  [*-t*=_<topics>_]... ([*-c*=_<configPath>_]
+                  [*--kafka*=_<kafkaContextName>_ [*--sr*=_<srContextName>_]])
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -53,6 +53,9 @@ List Kafka topics with metadata, partitions, replica placement, configuration,
 
 *--pretty*::
   Print pretty/formatted JSON
+
+*--prop*=_<String=String>_::
+  Additional client properties
 
 *--sr*=_<srContextName>_::
   Schema Registry context name
