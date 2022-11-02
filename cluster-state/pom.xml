@@ -175,6 +175,8 @@
                                 <buildArg>
                                     -H:ReflectionConfigurationFiles=../src/main/resources/META-INF/native-image/io.github.jeqo.kafka/kafka-clis/reflect-kafka-client.json,../src/main/resources/META-INF/native-image/io.github.jeqo.kafka/kafka-clis/reflect-schema-registry.json
                                 </buildArg>
+                                <buildArg>--enable-url-protocols=http</buildArg>
+                                <buildArg>--enable-url-protocols=https</buildArg>
                                 <buildArg>-H:Log=registerResource:3</buildArg>
                                 <buildArg>
                                     -H:ResourceConfigurationFiles=../src/main/resources/META-INF/native-image/io.github.jeqo.kafka/kafka-clis/resource-config.json
