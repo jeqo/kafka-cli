@@ -22,6 +22,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <executable-suffix/>
+        <git.build.time/>
+        <git.commit.id/>
 
         <java.version>17</java.version>
 
