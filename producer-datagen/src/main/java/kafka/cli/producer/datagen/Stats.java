@@ -1,6 +1,8 @@
 package kafka.cli.producer.datagen;
 
+import java.io.PrintStream;
 import java.util.Arrays;
+import org.HdrHistogram.Histogram;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
@@ -23,6 +25,7 @@ public class Stats {
   private long windowTotalLatency;
   private long windowBytes;
   private long reportingInterval;
+  private Histogram hdrHistogram;
 
   public Stats(long numRecords, int reportingInterval) {
     this.start = System.currentTimeMillis();
@@ -39,6 +42,8 @@ public class Stats {
     this.windowBytes = 0;
     this.totalLatency = 0;
     this.reportingInterval = reportingInterval;
+
+    this.hdrHistogram = new Histogram(5);
   }
 
   public void record(int iter, int latency, int bytes, long time) {
@@ -54,6 +59,7 @@ public class Stats {
       this.latencies[index] = latency;
       this.index++;
     }
+    this.hdrHistogram.recordValue(latency);
     /* maybe report the recent perf */
     if (time - windowStart >= reportingInterval) {
       printWindow();
@@ -106,6 +112,10 @@ public class Stats {
       percs[2],
       percs[3]
     );
+  }
+
+  public void printHdrHistogram(PrintStream printStream) {
+    hdrHistogram.outputPercentileDistribution(printStream, 1000.0);
   }
 
   private static int[] percentiles(int[] latencies, int count, double... percentiles) {

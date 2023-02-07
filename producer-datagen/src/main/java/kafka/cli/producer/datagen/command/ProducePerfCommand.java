@@ -2,8 +2,10 @@ package kafka.cli.producer.datagen.command;
 
 import static java.lang.System.out;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import kafka.cli.producer.datagen.Cli;
 import kafka.cli.producer.datagen.PayloadGenerator;
@@ -46,6 +48,9 @@ public class ProducePerfCommand implements Callable<Integer> {
   boolean transactionEnabled = false;
   long transactionDurationMs = 100L;
 
+  @CommandLine.Option(names = {"--hist"}, description = "HdrHistogram format")
+  Optional<Path> hdrHistogram;
+
   @Override
   public Integer call() {
     var producerConfig = propertiesOption.load();
@@ -61,7 +66,8 @@ public class ProducePerfCommand implements Callable<Integer> {
         topicName,
         transactionEnabled,
         transactionDurationMs,
-        shouldPrintMetrics
+        shouldPrintMetrics,
+        hdrHistogram
       );
       final var payloadGenerator = new PayloadGenerator(schemaOpts.config(), producerConfig);
       final var throughputThrottler = new ThroughputThrottler(System.currentTimeMillis(), throughput);

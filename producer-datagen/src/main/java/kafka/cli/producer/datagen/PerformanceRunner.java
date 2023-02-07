@@ -1,6 +1,10 @@
 package kafka.cli.producer.datagen;
 
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -84,6 +88,13 @@ public class PerformanceRunner {
 
       printMetrics(producer.metrics());
     }
+    if (config.hdrHistogram().isPresent()) {
+      try {
+        stats.printHdrHistogram(new PrintStream(config.hdrHistogram().get().toFile()));
+      } catch (FileNotFoundException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   /**
@@ -119,22 +130,23 @@ public class PerformanceRunner {
     String topicName,
     boolean transactionsEnabled,
     long transactionDurationMs,
-    boolean shouldPrintMetrics
+    boolean shouldPrintMetrics,
+    Optional<Path> hdrHistogram
   ) {
     static Config create(long records, String topicName) {
-      return new Config(records, topicName, false, -1L, false);
+      return new Config(records, topicName, false, -1L, false, Optional.empty());
     }
 
     static Config create(long records, String topicName, boolean shouldPrintMetrics) {
-      return new Config(records, topicName, false, -1L, shouldPrintMetrics);
+      return new Config(records, topicName, false, -1L, shouldPrintMetrics, Optional.empty());
     }
 
     static Config create(long records, String topicName, long transactionDuration, boolean shouldPrintMetrics) {
-      return new Config(records, topicName, true, transactionDuration, shouldPrintMetrics);
+      return new Config(records, topicName, true, transactionDuration, shouldPrintMetrics, Optional.empty());
     }
 
     static Config create(long records, String topicName, long transactionDuration) {
-      return new Config(records, topicName, true, transactionDuration, false);
+      return new Config(records, topicName, true, transactionDuration, false, Optional.empty());
     }
   }
 }
